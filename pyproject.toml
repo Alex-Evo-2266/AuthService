@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "smarthomeauth"
+version = "0.1.0"
+description = ""
+authors = ["Alex-Evo-2266 <ghbdtn2266@mail.ru>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = "^0.115.2"
+ormar = {extras = ["mysql"], version = "^0.20.1"}
+alembic = "^1.13.3"
+uvicorn = "^0.31.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
