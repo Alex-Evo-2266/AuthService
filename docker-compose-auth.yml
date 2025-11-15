@@ -18,6 +18,41 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+  
+  email_service:
+    build: ${AUTH_SERVICE_DIR}/EmailService
+    restart: always
+    networks: 
+      - local_auth_network
+    command: bash -c "uvicorn app:create_app --reload --port=8005 --host='0.0.0.0'"
+    ports:
+      - 8005:8005
+    environment:
+      EMAIL_QUEUE: ${EMAIL_QUEUE}
+      RABITMQ_HOST: ${RABITMQ_HOST}
+      RABITMQ_PORT: ${RABITMQ_PORT}
+    labels:
+      - "sh-core.core"
+      - "traefik.enable=true"
+      # http (без TLS)
+      - "traefik.http.routers.email_http.rule=PathPrefix(`/api-email`)"
+      - "traefik.http.routers.email_http.entrypoints=web"
+      - "traefik.http.routers.email_http.service=email"
+      - "traefik.http.routers.email_http.middlewares=auth@docker"
+      # https (с TLS)
+      - "traefik.http.routers.email_https.rule=PathPrefix(`/api-email`)"
+      - "traefik.http.routers.email_https.entrypoints=websecure"
+      - "traefik.http.routers.email_https.tls=true"
+      - "traefik.http.routers.email_https.service=email"
+      - "traefik.http.routers.email_https.middlewares=auth@docker"
+      # общий сервис
+      - "traefik.http.services.email.loadbalancer.server.port=8005"
+    volumes:
+      - ./EmailService:/home/email_service/web
+      - media_voluem:/home/email_service/web/media
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
 
   auth_service:
     build: ${AUTH_SERVICE_DIR}/SmartHomeAuth
@@ -31,7 +66,6 @@ services:
       SMARTHOME_AUTH_BD_NAME: ${MYSQL_AUTH_DATABASE}
       SMARTHOME_AUTH_BD_USER: ${MYSQL_AUTH_USER}
       SMARTHOME_AUTH_BD_PASSWORD: ${MYSQL_AUTH_PASSWORD}
-      EMAIL_TOPIK: ${EMAIL_TOPIK}
       EMAIL_QUEUE: ${EMAIL_QUEUE}
       RABITMQ_HOST: ${RABITMQ_HOST}
       RABITMQ_PORT: ${RABITMQ_PORT}
@@ -81,7 +115,7 @@ services:
     networks: 
       - local_auth_network
     build:
-      context: ${AUTH_SERVICE_DIR}/auth-service-frontend          # путь к вашему фронтенду (папка с package.json, vite.config.js)
+      context: ${AUTH_SERVICE_DIR}/auth-service-frontend
       dockerfile: Dockerfile
     restart: always
     volumes:
