@@ -1,0 +1,6 @@
+[submodule "lib/common_libs"]
+	path = lib/common_libs
+	url = https://github.com/Alex-Evo-2266/SmartHomeLibs
+[submodule "lib/auth"]
+	path = lib/auth
+	url = https://github.com/Alex-Evo-2266/AuthDependLib
