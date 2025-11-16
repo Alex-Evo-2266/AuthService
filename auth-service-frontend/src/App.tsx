@@ -7,8 +7,9 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import Roles from "./pages/Roles";
 import Privileges from "./pages/Privileges";
-import { ADD_USER, AUTH_SERVICE_PREFIX } from "./const";
+import { ADD_USER, AUTH_SERVICE_PREFIX, EMAIL_CONFIG } from "./const";
 import SessionPage from "./pages/Sessions";
+import EmailConfigs from "./pages/ConfigEmail";
 
 const { Header, Content } = Layout;
 
@@ -26,6 +27,7 @@ function AppLayout() {
               <Menu.Item key="2"><Link to={`${AUTH_SERVICE_PREFIX}/roles`}>Роли</Link></Menu.Item>
               <Menu.Item key="3"><Link to={`${AUTH_SERVICE_PREFIX}/privileges`}>Права</Link></Menu.Item>
               <Menu.Item key="4"><Link to={`${AUTH_SERVICE_PREFIX}/sessions`}>Сессии</Link></Menu.Item>
+              <Menu.Item key="5"><Link to={`${AUTH_SERVICE_PREFIX}/email-configs`}>Конфиг email</Link></Menu.Item>
               <Menu.Item key="10" onClick={logout}>Выйти</Menu.Item>
             </>
           )}
@@ -42,6 +44,9 @@ function AppLayout() {
               <Route path={`${AUTH_SERVICE_PREFIX}/sessions`} element={<ProtectedRoute><SessionPage /></ProtectedRoute>} />
               {
                 <Route path={`${AUTH_SERVICE_PREFIX}/users/add`} element={<ProtectedRoute prev={ADD_USER}><AddUser /></ProtectedRoute>} />
+              }
+              {
+                <Route path={`${AUTH_SERVICE_PREFIX}/email-configs`} element={<ProtectedRoute prev={EMAIL_CONFIG}><EmailConfigs /></ProtectedRoute>} />
               }
               <Route path={`${AUTH_SERVICE_PREFIX}/*`} element={<Navigate replace to={`${AUTH_SERVICE_PREFIX}/users`} />} />
               <Route path="/*" element={<Navigate replace to={`${AUTH_SERVICE_PREFIX}/users`} />} />

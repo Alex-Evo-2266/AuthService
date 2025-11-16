@@ -7,7 +7,8 @@ export default defineConfig({
   server:{
     port: 5174,
     proxy:{
-      '/api-auth': "http://127.0.0.1:1337"
+      '/api-auth': "http://127.0.0.1:1337",
+      '/api-email': "http://127.0.0.1:1337"
     }
   },
   plugins: [react()],

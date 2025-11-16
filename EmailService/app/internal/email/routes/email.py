@@ -17,7 +17,7 @@ router = APIRouter(
 @router.post("/send")
 async def send(data:MessageSchemas, userId: str = Depends(auth_privilege_dep('email_send'))):
 	try:
-		await send_email(data.subject, data.email, data.message)
+		send_email(data.subject, data.email, data.message)
 		return 'ok'
 	except Exception as e:
 		logger.error(e)

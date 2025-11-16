@@ -77,3 +77,16 @@ export interface Session {
 export interface SessionResp {
     sessions: Session[]
 }
+
+export interface ConfigItem {
+    key: string
+    value: string
+    type: string
+    tag: string
+}
+
+export interface MessageData {
+    message: string,
+    email: string,
+    subject: string
+}
