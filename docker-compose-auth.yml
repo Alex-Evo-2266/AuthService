@@ -25,8 +25,6 @@ services:
     networks: 
       - local_auth_network
     command: bash -c "uvicorn app:create_app --reload --port=8005 --host='0.0.0.0'"
-    ports:
-      - 8005:8005
     environment:
       EMAIL_QUEUE: ${EMAIL_QUEUE}
       RABITMQ_HOST: ${RABITMQ_HOST}
