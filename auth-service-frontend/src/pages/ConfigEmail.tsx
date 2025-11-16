@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, Form, Input, Modal, Space, Table, Typography, message } from "antd";
 import type { ConfigItem, MessageData } from "../types";
 import { useEmailConfigAPI } from "../api/emailConfig";
