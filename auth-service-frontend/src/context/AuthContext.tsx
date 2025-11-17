@@ -26,6 +26,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const login = async (data: LoginForm) => {
         const u = await apiLogin(data);
+        console.log(u)
         localStorage.setItem(SMARTHOME_USER_DATA, JSON.stringify({
             userId: u.userId, role:u.role, token:u.token, expires_at: u.expires_at, privileges: u.privileges
         }))
@@ -47,12 +48,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const initState = ():AuthData | null => {
         let datauser = localStorage.getItem(SMARTHOME_USER_DATA)
+        console.log(datauser)
         if (!datauser)
             return null
         const data = JSON.parse(datauser)
         let newdata: AuthData = {
             token: data?.token || '',
-            userId: data?.id || undefined,
+            userId: data?.userId || undefined,
             role: data?.role || "",
             privileges: data?.privileges || [],
             expires_at: (data?.expires_at)?new Date(data?.expires_at):new Date(),
