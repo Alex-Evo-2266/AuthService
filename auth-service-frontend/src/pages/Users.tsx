@@ -7,6 +7,7 @@ import { ADD_USER, AUTH_SERVICE_PREFIX, DELETE_USER, EDIT_ROLE_USER, EDIT_USER }
 import RoleModal from "../components/RoleModal";
 import { NavLink } from "react-router-dom";
 import UserModal from "../components/UserEditModal";
+import PasswordEditModal from "../components/PasswordEditDialog";
 
 export default function Users() {
   const [users, setUsers] = useState<UserSchema[]>([]);
@@ -18,6 +19,7 @@ export default function Users() {
   const {valid_privilege:valid_edit_role} = usePrivilege(EDIT_ROLE_USER)
   const [editRoleUserModal, setEditRoleUserModal] = useState<null | UserSchema>(null);
   const [editUserModal, setEditUserModal] = useState<null | UserSchema>(null);
+  const [editPasswordModel, setEditPasswordModel] = useState<boolean>(false);
   const {getAllUsers, deleteUser} = useUserAPI()
   
 
@@ -50,12 +52,14 @@ export default function Users() {
    const handleModal = () => {
       setEditRoleUserModal(null);
       setEditUserModal(null)
+      setEditPasswordModel(false)
       fetchUsers();
     }
 
     const handleModalCancel = () => {
       setEditRoleUserModal(null);
       setEditUserModal(null)
+      setEditPasswordModel(false)
     };
 
   const columns = [
@@ -74,6 +78,10 @@ export default function Users() {
           {
             valid_edit_role && user && user.userId !== record.id &&
             <Button type="link" onClick={()=>setEditRoleUserModal(record)}>Изменить роль</Button>
+          }
+          {
+            valid_edit_role && user && user.userId === record.id &&
+            <Button type="link" onClick={()=>setEditPasswordModel(true)}>Изменить пароль</Button>
           }
           {
             valid_delete && user && user.userId !== record.id &&
@@ -112,6 +120,10 @@ export default function Users() {
         {
           editUserModal &&
           <UserModal open={editUserModal !== null} user={editUserModal} onClose={handleModalCancel} onSuccess={handleModal}/>
+        }
+        {
+          editPasswordModel &&
+          <PasswordEditModal open={editPasswordModel} onClose={handleModalCancel} onSuccess={handleModal}/>
         }
     </div>
     

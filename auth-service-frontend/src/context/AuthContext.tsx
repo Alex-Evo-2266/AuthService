@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { useAuthAPI, type LoginForm } from "../api/auth";
 import type { AxiosResponse } from "axios";
 
-interface AuthData {
+export interface AuthData {
   userId: string;
   role: string;
   privileges: string[];
