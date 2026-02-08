@@ -1,13 +1,12 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { useAuthAPI, type LoginForm } from "../api/auth";
 import type { AxiosResponse } from "axios";
+import { setUserData } from "../api/axios";
 
 export interface AuthData {
   userId: string;
   role: string;
   privileges: string[];
-  token: string
-  expires_at: Date
 }
 
 interface AuthContextType {
@@ -26,15 +25,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const login = async (data: LoginForm) => {
         const u = await apiLogin(data);
-        console.log(u)
         localStorage.setItem(SMARTHOME_USER_DATA, JSON.stringify({
-            userId: u.userId, role:u.role, token:u.token, expires_at: u.expires_at, privileges: u.privileges
+            userId: u.userId, role:u.role, privileges: u.privileges
         }))
         setUser(u);
     };
 
     const logout = async () => {
         setUser(null);
+        localStorage.removeItem(SMARTHOME_USER_DATA)
         await apiLogout();
     };
 
@@ -42,7 +41,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const data = initState()
       setUser(data)
       if(!data){
-        logout()
+        setUserData(null);
+        // logout()
       }
     },[])
 
@@ -53,11 +53,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             return null
         const data = JSON.parse(datauser)
         let newdata: AuthData = {
-            token: data?.token || '',
             userId: data?.userId || undefined,
             role: data?.role || "",
             privileges: data?.privileges || [],
-            expires_at: (data?.expires_at)?new Date(data?.expires_at):new Date(),
         }
         return newdata
     }
@@ -90,7 +88,7 @@ export const useErrorLogout = () => {
           return data.then(val=>{
               return val
           }).catch(err=>{
-              if(err.status === 403)
+              if(err.status === 401)
                   logout()
               throw err
           })

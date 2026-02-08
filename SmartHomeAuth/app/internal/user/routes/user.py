@@ -5,7 +5,7 @@ from app.configuration.settings import ROUTE_PREFIX
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from app.internal.auth.schemas.depends import SessionDepData
-from app.internal.auth.depends.auth import session_dep, user_preveleg_dep
+from app.internal.auth.depends.auth import session_dep_sso, user_preveleg_dep_sso
 
 from app.internal.role.logic.get_role import get_role
 
@@ -27,7 +27,7 @@ router = APIRouter(
 )
 
 @router.post("")
-async def add(data: UserForm, session:SessionDepData = Depends(user_preveleg_dep(BASE_ROLE.ADMIN))):
+async def add(data: UserForm, session:SessionDepData = Depends(user_preveleg_dep_sso(BASE_ROLE.ADMIN))):
 	try:
 		await add_user(data)
 		return "ok"
@@ -35,14 +35,14 @@ async def add(data: UserForm, session:SessionDepData = Depends(user_preveleg_dep
 		return JSONResponse(status_code=400, content=str(e))
 
 @router.get("", response_model=UserSchema)
-async def get(session:SessionDepData = Depends(session_dep)):
+async def get(session:SessionDepData = Depends(session_dep_sso)):
 	try:
 		return UserSchema(id=session.user.id, name=session.user.name, email=session.user.email, role=session.role.role_name)
 	except Exception as e:
 		return JSONResponse(status_code=400, content=str(e))
 
 @router.get("/all", response_model=UsersDataSchema)
-async def get_all(session:SessionDepData = Depends(session_dep)):
+async def get_all(session:SessionDepData = Depends(session_dep_sso)):
 	try:
 		users = await get_all_users()
 		users_data = []
@@ -54,7 +54,7 @@ async def get_all(session:SessionDepData = Depends(session_dep)):
 		return JSONResponse(status_code=400, content=str(e))
 
 @router.get("/{id}", response_model=UserSchema)
-async def get_by_id(id:str, session:SessionDepData = Depends(session_dep)):
+async def get_by_id(id:str, session:SessionDepData = Depends(session_dep_sso)):
 	try:
 		user = await get_user(id)
 		await user.role.load()
@@ -63,14 +63,14 @@ async def get_by_id(id:str, session:SessionDepData = Depends(session_dep)):
 		return JSONResponse(status_code=400, content=str(e))
 
 @router.put("")
-async def edit(data:UserEditSchema, session:SessionDepData = Depends(session_dep)):
+async def edit(data:UserEditSchema, session:SessionDepData = Depends(session_dep_sso)):
 	try:
 		await edit_user(session.user, data)
 	except Exception as e:
 		return JSONResponse(status_code=400, content=str(e))
 	
 @router.put("/{id}")
-async def edit(id:str, data:UserEditSchema, session:SessionDepData = Depends(session_dep)):
+async def edit(id:str, data:UserEditSchema, session:SessionDepData = Depends(session_dep_sso)):
 	try:
 		user = await get_user(id)
 		await edit_user(user, data)
@@ -78,14 +78,14 @@ async def edit(id:str, data:UserEditSchema, session:SessionDepData = Depends(ses
 		return JSONResponse(status_code=400, content=str(e))
 
 @router.delete("/{id}")
-async def delete(id: str, session:SessionDepData = Depends(user_preveleg_dep(BASE_ROLE.ADMIN))):
+async def delete(id: str, session:SessionDepData = Depends(user_preveleg_dep_sso(BASE_ROLE.ADMIN))):
 	try:
 		await delete_user(id)
 	except Exception as e:
 		return JSONResponse(status_code=400, content=str(e))
 
 @router.patch("/role")
-async def level(data: UserEditLevelSchema, session:SessionDepData = Depends(user_preveleg_dep(BASE_ROLE.ADMIN))):
+async def level(data: UserEditLevelSchema, session:SessionDepData = Depends(user_preveleg_dep_sso(BASE_ROLE.ADMIN))):
 	try:
 		user = await get_user(data.id)
 		role = await get_role(data.role)
@@ -94,7 +94,7 @@ async def level(data: UserEditLevelSchema, session:SessionDepData = Depends(user
 		return JSONResponse(status_code=400, content=str(e))
 
 @router.patch("/password")
-async def edit_password(data: UserEditPasswordSchema, session:SessionDepData = Depends(session_dep)):
+async def edit_password(data: UserEditPasswordSchema, session:SessionDepData = Depends(session_dep_sso)):
 	try:
 		await edit_user_password(session.user, data)
 	except Exception as e:

@@ -4,7 +4,7 @@ from app.configuration.settings import ROUTE_PREFIX
 
 from fastapi import APIRouter, Depends
 
-from app.internal.auth.depends.auth import session_dep
+from app.internal.auth.depends.auth import session_dep_sso
 from app.internal.auth.schemas.depends import SessionDepData
 from app.internal.auth.schemas.auth import SessionSchema, SessionSchemaList
 from app.internal.auth.logic.get_session import get_session_user, get_sessions_user
@@ -19,14 +19,14 @@ router = APIRouter(
 )
 
 @router.get("", response_model=SessionSchema)
-async def get_session(userData:SessionDepData = Depends(session_dep)):
+async def get_session(userData:SessionDepData = Depends(session_dep_sso)):
     await get_session_user(userData.user)
     
 @router.get("/all", response_model=SessionSchemaList)
-async def get_session(userData:SessionDepData = Depends(session_dep)):
+async def get_session(userData:SessionDepData = Depends(session_dep_sso)):
     data = await get_sessions_user(userData.user)
     return SessionSchemaList(sessions=data)
 
 @router.delete("/{id}")
-async def session_delete(id:str, userData:SessionDepData = Depends(session_dep)):
+async def session_delete(id:str, userData:SessionDepData = Depends(session_dep_sso)):
     await delete_session_user(id, userData.user)

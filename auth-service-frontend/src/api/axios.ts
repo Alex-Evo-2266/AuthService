@@ -20,7 +20,6 @@ export const setUserData = (data: {
     role: string,
     userId: string,
     privileges: string[],
-    token: string
 } | null) => {
     if(data === null)
     {
@@ -29,90 +28,101 @@ export const setUserData = (data: {
     else
     {
         localStorage.setItem(SMARTHOME_USER_DATA, JSON.stringify({
-            id: data.userId, role:data.role, token:data.token
+            id: data.userId, role:data.role
         }))
     }
 };
 
 // Интерцептор добавляет Authorization
-api.interceptors.request.use((config) => {
-    const data = localStorage.getItem(SMARTHOME_USER_DATA)
-    if(!data)
-        return config
-    const obj = JSON.parse(data)
-  if (obj.token) {
-    config.headers.Authorization = `Bearer ${obj.token}`;
-  }
-  return config;
-});
+// api.interceptors.request.use((config) => {
+//     const data = localStorage.getItem(SMARTHOME_USER_DATA)
+//     if(!data)
+//         return config
+//     const obj = JSON.parse(data)
+//   if (obj.token) {
+//     config.headers.Authorization = `Bearer ${obj.token}`;
+//   }
+//   return config;
+// });
 
 // Если 401 — пробуем refresh
-api.interceptors.response.use(
-  (resp) => resp,
-  async (error) => {
-    if (error.response?.status === 401) {
-      try {
-        const resp = await api.get("/refresh");
-        const token = resp.headers["authorization"]?.replace("Bearer ", "");
-        const date = resp.headers['X-Token-Expires-At']
-        const d = {
-          role: resp.headers["x-user-role"],
-          userId: resp.headers["x-user-id"],
-          privileges: resp.headers["x-user-privilege"]?.split(",") || [],
-          expires_at: new Date(date),
-          token
-        };
-        if (d.token) {
-          setUserData(d);
-          error.config.headers.Authorization = `Bearer ${d.token}`;
-          return api.request(error.config); // повторяем запрос
-        }
-      } catch (e) {
-        console.error("Refresh error", e);
-      }
-    }
-    return Promise.reject(error);
-  }
-);
+// api.interceptors.response.use(
+//   (resp) => resp,
+//   async (error) => {
+//     if (error.response?.status === 401) {
+//       try {
+//         const resp = await api.get("/refresh");
+//         const token = resp.headers["authorization"]?.replace("Bearer ", "");
+//         const date = resp.headers['X-Token-Expires-At']
+//         const d = {
+//           role: resp.headers["x-user-role"],
+//           userId: resp.headers["x-user-id"],
+//           privileges: resp.headers["x-user-privilege"]?.split(",") || [],
+//           expires_at: new Date(date),
+//           token
+//         };
+//         if (d.token) {
+//           setUserData(d);
+//           error.config.headers.Authorization = `Bearer ${d.token}`;
+//           return api.request(error.config); // повторяем запрос
+//         }
+//       } catch (e) {
+//         console.error("Refresh error", e);
+//       }
+//     }
+//     return Promise.reject(error);
+//   }
+// );
 
 
 // Интерцептор добавляет Authorization
-apiEmail.interceptors.request.use((config) => {
-    const data = localStorage.getItem(SMARTHOME_USER_DATA)
-    if(!data)
-        return config
-    const obj = JSON.parse(data)
-  if (obj.token) {
-    config.headers.Authorization = `Bearer ${obj.token}`;
-  }
-  return config;
-});
+// apiEmail.interceptors.request.use((config) => {
+//     const data = localStorage.getItem(SMARTHOME_USER_DATA)
+//     if(!data)
+//         return config
+//     const obj = JSON.parse(data)
+//   if (obj.token) {
+//     config.headers.Authorization = `Bearer ${obj.token}`;
+//   }
+//   return config;
+// });
 
 // Если 401 — пробуем refresh
-apiEmail.interceptors.response.use(
-  (resp) => resp,
-  async (error) => {
-    if (error.response?.status === 401) {
-      try {
-        const resp = await api.get("/refresh");
-        const token = resp.headers["authorization"]?.replace("Bearer ", "");
-        const date = resp.headers['X-Token-Expires-At']
-        const d = {
-          role: resp.headers["x-user-role"],
-          userId: resp.headers["x-user-id"],
-          privileges: resp.headers["x-user-privilege"]?.split(",") || [],
-          expires_at: new Date(date),
-          token
-        };
-        if (d.token) {
-          setUserData(d);
-          error.config.headers.Authorization = `Bearer ${d.token}`;
-          return api.request(error.config); // повторяем запрос
-        }
-      } catch (e) {
-        console.error("Refresh error", e);
-      }
-    }
-    return Promise.reject(error);
-  }
-);
+// apiEmail.interceptors.response.use(
+//   (resp) => resp,
+//   async (error) => {
+//     if (error.response?.status === 401) {
+//       try {
+//         const resp = await api.get("/refresh");
+//         const token = resp.headers["authorization"]?.replace("Bearer ", "");
+//         const date = resp.headers['X-Token-Expires-At']
+//         const d = {
+//           role: resp.headers["x-user-role"],
+//           userId: resp.headers["x-user-id"],
+//           privileges: resp.headers["x-user-privilege"]?.split(",") || [],
+//           expires_at: new Date(date),
+//           token
+//         };
+//         if (d.token) {
+//           setUserData(d);
+//           error.config.headers.Authorization = `Bearer ${d.token}`;
+//           return api.request(error.config); // повторяем запрос
+//         }
+//       } catch (e) {
+//         console.error("Refresh error", e);
+//       }
+//     }
+//     return Promise.reject(error);
+//   }
+// );
+
+
+// api.interceptors.response.use(
+//   (resp) => resp,
+//   async (error) => {
+//     if (error.response?.status === 401) {
+//       window.location.href = `${AUTH_SERVICE_PREFIX}/login`
+//     }
+//     return Promise.reject(error);
+//   }
+// );

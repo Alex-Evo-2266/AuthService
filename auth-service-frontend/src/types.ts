@@ -90,3 +90,9 @@ export interface MessageData {
     email: string,
     subject: string
 }
+
+export type MeData = {
+    user_id: string,
+    user_name: string,
+    role: Role
+}

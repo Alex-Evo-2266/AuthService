@@ -1,6 +1,7 @@
 import datetime
 from pydantic import BaseModel
 from typing import Optional, List
+from app.internal.role.schemas.role import RoleResponseSchema
 
 class Login(BaseModel):
 	name: str
@@ -35,3 +36,8 @@ class ConfigFileData(BaseModel):
 
 class SessionSchemaList(BaseModel):
 	sessions: List[SessionSchema]
+
+class MeSchems(BaseModel):
+	user_id: str
+	user_name: str
+	role: RoleResponseSchema

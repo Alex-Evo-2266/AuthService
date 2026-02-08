@@ -1,3 +1,4 @@
+import type { MeData } from "../types";
 import { api, setUserData } from "./axios";
 
 export interface LoginForm {
@@ -6,24 +7,28 @@ export interface LoginForm {
 }
 
 export const useAuthAPI = () => {
-  const login = async (data: LoginForm) => {
-    const resp = await api.post("/login", data);
-    const token = resp.headers["authorization"]?.replace("Bearer ", "");
-    const date = resp.headers['X-Token-Expires-At']
-    const prev:string[] = resp.headers["x-user-privilege"]?.split(",") || []
+
+    const me = async () => {
+    const respMe = await api.get<MeData>("/sso/me");
     const d = {
-      role: resp.headers["x-user-role"],
-      userId: resp.headers["x-user-id"],
-      privileges: prev.map(i=>i.trim()),
-      expires_at: new Date(date),
-      token
+      role: respMe.data.role.role_name,
+      userId: respMe.data.user_id,
+      privileges: respMe.data.role.privileges.map(i=>i.privilege.trim()),
     };
-    if (token) setUserData(d);
+    setUserData(d);
     return d;
+  }
+
+  const login = async (data: LoginForm) => {
+    const resp = await api.post("/sso/login", data);
+    if(resp.status !== 200){
+      throw new Error(resp.statusText)
+    }
+    return await me()
   };
 
   const logout = async () => {
-    await api.get("/logout");
+    await api.get("/sso/logout");
     setUserData(null);
   };
 
@@ -39,7 +44,8 @@ export const useAuthAPI = () => {
   return {
     login,
     logout,
-    checkAuth
+    checkAuth,
+    me
   }
 }
 

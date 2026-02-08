@@ -23,7 +23,7 @@ from app.internal.role.logic.get_role import get_role_by_id
 logger = logging.getLogger(__name__)
 
 router = APIRouter(
-	prefix=f"{ROUTE_PREFIX}",
+	prefix=f"{ROUTE_PREFIX}/api",
 	tags=["auth"],
 	responses={404: {"description": "Not found"}},
 )

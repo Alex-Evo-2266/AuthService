@@ -6,7 +6,7 @@ from app.configuration.settings import ROUTE_PREFIX
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from app.internal.auth.schemas.depends import SessionDepData
-from app.internal.auth.depends.auth import user_preveleg_dep
+from app.internal.auth.depends.auth import user_preveleg_dep_sso
 
 from app.internal.role.logic.create_privilege import add_privilege
 from app.internal.role.logic.get_privilege import get_privilege_all
@@ -24,7 +24,7 @@ router = APIRouter(
 )
 
 @router.post("")
-async def add(data: PrivilegeForm, user_data:SessionDepData = Depends(user_preveleg_dep(BASE_ROLE.ADMIN))):
+async def add(data: PrivilegeForm, user_data:SessionDepData = Depends(user_preveleg_dep_sso(BASE_ROLE.ADMIN))):
 	try:
 		await add_privilege(data)
 		return "ok"
@@ -32,7 +32,7 @@ async def add(data: PrivilegeForm, user_data:SessionDepData = Depends(user_preve
 		return JSONResponse(status_code=400, content=str(e))
 	
 @router.get("", response_model=PrivilegeSchemaList)
-async def get(user_data:SessionDepData = Depends(user_preveleg_dep(BASE_ROLE.ADMIN))):
+async def get(user_data:SessionDepData = Depends(user_preveleg_dep_sso(BASE_ROLE.ADMIN))):
 	try:
 		privileges = await get_privilege_all()
 		return PrivilegeSchemaList(privileges=[PrivilegeSchema(id=x.id, privilege=x.privilege) for x in privileges])
@@ -40,7 +40,7 @@ async def get(user_data:SessionDepData = Depends(user_preveleg_dep(BASE_ROLE.ADM
 		return JSONResponse(status_code=400, content=str(e))
 	
 @router.delete("/{id}")
-async def get(id:str, user_data:SessionDepData = Depends(user_preveleg_dep(BASE_ROLE.ADMIN))):
+async def get(id:str, user_data:SessionDepData = Depends(user_preveleg_dep_sso(BASE_ROLE.ADMIN))):
 	try:
 		await delete_privilege_by_id(id)
 		return "ok"

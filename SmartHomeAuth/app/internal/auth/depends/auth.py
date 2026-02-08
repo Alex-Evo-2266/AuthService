@@ -2,13 +2,15 @@ import jwt, logging
 from jwt import ExpiredSignatureError
 from datetime import datetime
 from typing import Annotated, Optional
-from fastapi import Header, HTTPException, Request
+from fastapi import Header, HTTPException, Request, Response
 
 from app.configuration import settings
 from app.internal.exceptions.base import InvalidInputException
+from app.internal.auth.exceptions.access import NoToken
 
 from app.internal.user.logic.get_user import get_user
 from app.internal.auth.logic.refresh import refresh_token
+from app.internal.auth.logic.verify_access import verify_or_refresh_session
 from app.internal.role.models.role import Role
 
 from app.internal.auth.schemas.depends import AuthHeaders, UserDepData, SessionDepData
@@ -118,3 +120,72 @@ def user_preveleg_dep(privilege: str | settings.BASE_ROLE):
 			logger.warning(f"token_dep error {e}")
 			raise HTTPException(status_code=403, detail="invalid jwt")
 	return _user_role_dep
+
+
+
+async def session_dep_sso(request: Request, response: Response) -> SessionDepData:
+	try:
+		# status = request.headers.get("x-status-auth")
+		access = request.cookies.get("smart_home_access_sso")
+		refresh = request.cookies.get("smart_home_refrash_sso")
+		if(access is None or refresh is None):
+			raise NoToken()
+		# if status != "ok":
+		# 	raise HTTPException(status_code=401, detail="unauthorized")
+
+		# user_id = request.headers.get("x-user-id")
+
+		u_session = await verify_or_refresh_session(access, refresh, response)
+
+		await u_session.user.load()
+		await u_session.user.role.load()
+		# user = await get_user(user_id)
+		# if not user:
+		# 	raise HTTPException(status_code=403, detail="invalid auth data")
+		# logger.info(f"the user is logged in. id:{user_id}")
+		# await user.role.load()
+		# u_session = await Session.objects.get_or_none(access=access, user=user)
+		if not u_session:
+			logger.error(f"session not found")
+			raise HTTPException(status_code=403, detail="session not found")
+		return SessionDepData(user=u_session.user, role=u_session.user.role, session=u_session)
+	except Exception as e:
+		raise HTTPException(status_code=400, detail=str(e))
+
+
+def user_preveleg_dep_sso(privilege: str | settings.BASE_ROLE):
+	async def _session_dep_sso(request: Request,  response: Response) -> SessionDepData:
+		try:
+			# status = request.headers.get("x-status-auth")
+			access = request.cookies.get("smart_home_access_sso")
+			refresh = request.cookies.get("smart_home_refrash_sso")
+			if(access is None or refresh is None):
+				raise NoToken()
+
+			# if status != "ok":
+			# 	raise HTTPException(status_code=401, detail="unauthorized")
+
+			# user_id = request.headers.get("x-user-id")
+
+			u_session = await verify_or_refresh_session(access, refresh, response)
+
+			await u_session.user.load()
+			await u_session.user.role.load()
+
+			# user = await get_user(user_id)
+			# if not user:
+			# 	raise HTTPException(status_code=403, detail="invalid auth data")
+			# logger.info(f"the user is logged in. id:{user_id}")
+			# await user.role.load()
+			# u_session = await Session.objects.get_or_none(access=access, user=user)
+			if(privilege == settings.BASE_ROLE.ADMIN and u_session.user.role.role_name != settings.BASE_ROLE.ADMIN):
+				return HTTPException(status_code=403, detail="not enough rights for the operation.")
+			elif(not check_privilege(u_session.user.role, privilege)):
+				return HTTPException(status_code=403, detail="not enough rights for the operation.")
+			if not u_session:
+				logger.error(f"session not found")
+				raise HTTPException(status_code=403, detail="session not found")
+			return SessionDepData(user=u_session.user, role=u_session.user.role, session=u_session)
+		except Exception as e:
+			raise HTTPException(status_code=400, detail=str(e))
+	return _session_dep_sso

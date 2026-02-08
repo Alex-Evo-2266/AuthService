@@ -36,13 +36,13 @@ services:
       - "traefik.http.routers.email_http.rule=PathPrefix(`/api-email`)"
       - "traefik.http.routers.email_http.entrypoints=web"
       - "traefik.http.routers.email_http.service=email"
-      - "traefik.http.routers.email_http.middlewares=auth@docker"
+      - "traefik.http.routers.email_http.middlewares=auth_sso@docker"
       # https (с TLS)
       - "traefik.http.routers.email_https.rule=PathPrefix(`/api-email`)"
       - "traefik.http.routers.email_https.entrypoints=websecure"
       - "traefik.http.routers.email_https.tls=true"
       - "traefik.http.routers.email_https.service=email"
-      - "traefik.http.routers.email_https.middlewares=auth@docker"
+      - "traefik.http.routers.email_https.middlewares=auth_sso@docker"
       # общий сервис
       - "traefik.http.services.email.loadbalancer.server.port=8005"
     volumes:
@@ -87,6 +87,11 @@ services:
 
       # общий сервис
       - "traefik.http.services.auth.loadbalancer.server.port=8004"
+
+      # middleware для sso проверки
+      - "traefik.http.middlewares.auth_sso.forwardauth.address=http://auth_service:8004/api-auth/sso/check"
+      - "traefik.http.middlewares.auth_sso.forwardauth.trustforwardheader=true"
+      - "traefik.http.middlewares.auth_sso.forwardauth.authResponseHeaders=x-user-id,x-user-role,x-access-token,x-user-privilege"
 
       # middleware для обычной проверки
       - "traefik.http.middlewares.auth.forwardauth.address=http://auth_service:8004/api-auth/check"

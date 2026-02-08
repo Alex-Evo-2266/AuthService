@@ -6,7 +6,7 @@ from app.configuration.settings import ROUTE_PREFIX
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from app.internal.auth.schemas.depends import SessionDepData
-from app.internal.auth.depends.auth import user_preveleg_dep
+from app.internal.auth.depends.auth import user_preveleg_dep_sso
 
 from app.internal.role.logic.create_role import add_role
 from app.internal.role.logic.get_role import get_role_all
@@ -26,7 +26,7 @@ router = APIRouter(
 )
 
 @router.post("")
-async def add(data: RoleForm, user_data:SessionDepData = Depends(user_preveleg_dep(BASE_ROLE.ADMIN))):
+async def add(data: RoleForm, user_data:SessionDepData = Depends(user_preveleg_dep_sso(BASE_ROLE.ADMIN))):
 	try:
 		await add_role(data)
 		return "ok"
@@ -34,7 +34,7 @@ async def add(data: RoleForm, user_data:SessionDepData = Depends(user_preveleg_d
 		return JSONResponse(status_code=400, content=str(e))
 	
 @router.get("/all", response_model=RoleResponseSchemaList)
-async def get_role(user_data:SessionDepData = Depends(user_preveleg_dep(BASE_ROLE.ADMIN))):
+async def get_role(user_data:SessionDepData = Depends(user_preveleg_dep_sso(BASE_ROLE.ADMIN))):
 	try:
 		roles = await get_role_all()
 		roles_data = [await map_role(role) for role in roles]
@@ -43,7 +43,7 @@ async def get_role(user_data:SessionDepData = Depends(user_preveleg_dep(BASE_ROL
 		return JSONResponse(status_code=400, content=str(e))
 	
 @router.delete("/{id}")
-async def delete_role(id:str, user_data:SessionDepData = Depends(user_preveleg_dep(BASE_ROLE.ADMIN))):
+async def delete_role(id:str, user_data:SessionDepData = Depends(user_preveleg_dep_sso(BASE_ROLE.ADMIN))):
 	try:
 		await delete_role_by_id(id)
 		return "ok"
@@ -51,7 +51,7 @@ async def delete_role(id:str, user_data:SessionDepData = Depends(user_preveleg_d
 		return JSONResponse(status_code=400, content=str(e))
 	
 @router.put("/privilege")
-async def edit_privilege(data:EditPrivilegeRoleForm, user_data:SessionDepData = Depends(user_preveleg_dep(BASE_ROLE.ADMIN))):
+async def edit_privilege(data:EditPrivilegeRoleForm, user_data:SessionDepData = Depends(user_preveleg_dep_sso(BASE_ROLE.ADMIN))):
 	try:
 		await edit_privilege_role(data)
 		return "ok"
