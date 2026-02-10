@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Link, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link, Navigate, useLocation } from "react-router-dom";
 import { Layout, Menu } from "antd";
 import Users from "./pages/Users";
 import AddUser from "./pages/AddUser";
@@ -16,19 +16,37 @@ const { Header, Content } = Layout;
 
 function AppLayout() {
   const { user, logout } = useAuth();
+  const location = useLocation()
 
   return (
     <Layout style={{ minHeight: "100vh", width: "100%" }}>
       <Header>
-        <Menu theme="dark" mode="horizontal">
+        <Menu theme="dark" mode="horizontal" selectedKeys={[location.pathname]}>
           {user && (
             <>
-              <Menu.Item key="1"><Link to={`${AUTH_SERVICE_PREFIX}/users`}>Пользователи</Link></Menu.Item>
-              <Menu.Item key="2"><Link to={`${AUTH_SERVICE_PREFIX}/roles`}>Роли</Link></Menu.Item>
-              <Menu.Item key="3"><Link to={`${AUTH_SERVICE_PREFIX}/privileges`}>Права</Link></Menu.Item>
-              <Menu.Item key="4"><Link to={`${AUTH_SERVICE_PREFIX}/sessions`}>Сессии</Link></Menu.Item>
-              <Menu.Item key="5"><Link to={`${AUTH_SERVICE_PREFIX}/email-configs`}>Конфиг email</Link></Menu.Item>
-              <Menu.Item key="10" onClick={logout}>Выйти</Menu.Item>
+                <Menu.Item key={`${AUTH_SERVICE_PREFIX}/users`}>
+                  <Link to={`${AUTH_SERVICE_PREFIX}/users`}>Пользователи</Link>
+                </Menu.Item>
+
+                <Menu.Item key={`${AUTH_SERVICE_PREFIX}/roles`}>
+                  <Link to={`${AUTH_SERVICE_PREFIX}/roles`}>Роли</Link>
+                </Menu.Item>
+
+                <Menu.Item key={`${AUTH_SERVICE_PREFIX}/privileges`}>
+                  <Link to={`${AUTH_SERVICE_PREFIX}/privileges`}>Права</Link>
+                </Menu.Item>
+
+                <Menu.Item key={`${AUTH_SERVICE_PREFIX}/sessions`}>
+                  <Link to={`${AUTH_SERVICE_PREFIX}/sessions`}>Сессии</Link>
+                </Menu.Item>
+
+                <Menu.Item key={`${AUTH_SERVICE_PREFIX}/email-configs`}>
+                  <Link to={`${AUTH_SERVICE_PREFIX}/email-configs`}>Конфиг email</Link>
+                </Menu.Item>
+
+                <Menu.Item key="logout" onClick={logout}>
+                  Выйти
+                </Menu.Item>
             </>
           )}
         </Menu>
@@ -53,7 +71,7 @@ function AppLayout() {
             </>:
             <>
               <Route path={`${AUTH_SERVICE_PREFIX}/login`} element={<LoginPage />} />
-              <Route path={`${AUTH_SERVICE_PREFIX}/*`} element={<Navigate replace to={`${AUTH_SERVICE_PREFIX}/login`} />} />
+              <Route path={`${AUTH_SERVICE_PREFIX}/*`} element={<Navigate replace to={`${AUTH_SERVICE_PREFIX}/login?next=${AUTH_SERVICE_PREFIX}/users`} />} />
               <Route path="/*" element={<Navigate replace to={`${AUTH_SERVICE_PREFIX}/login`} />} />
             </>
           }
