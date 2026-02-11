@@ -53,6 +53,7 @@ function AppLayout() {
       </Header>
       <Content style={{ padding: "24px" }}>
         <Routes>
+          <Route path={`${AUTH_SERVICE_PREFIX}/login`} element={<LoginPage />} />
           {
             user?
             <>
@@ -70,7 +71,6 @@ function AppLayout() {
               <Route path="/*" element={<Navigate replace to={`${AUTH_SERVICE_PREFIX}/users`} />} />
             </>:
             <>
-              <Route path={`${AUTH_SERVICE_PREFIX}/login`} element={<LoginPage />} />
               <Route path={`${AUTH_SERVICE_PREFIX}/*`} element={<Navigate replace to={`${AUTH_SERVICE_PREFIX}/login?next=${AUTH_SERVICE_PREFIX}/users`} />} />
               <Route path="/*" element={<Navigate replace to={`${AUTH_SERVICE_PREFIX}/login`} />} />
             </>

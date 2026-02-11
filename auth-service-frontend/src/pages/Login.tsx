@@ -12,6 +12,7 @@ export default function LoginPage() {
     try {
       await login(values);
       message.success("Успешный вход");
+      console.log(`next: ${searchParams.get("next")}`)
       navigate(`${searchParams.get("next") ?? `${AUTH_SERVICE_PREFIX}/users`}`);
     } catch {
       message.error("Неверное имя или пароль");
