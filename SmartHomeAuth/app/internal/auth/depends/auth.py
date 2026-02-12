@@ -127,7 +127,7 @@ async def session_dep_sso(request: Request, response: Response) -> SessionDepDat
 	try:
 		# status = request.headers.get("x-status-auth")
 		access = request.cookies.get("smart_home_access_sso")
-		refresh = request.cookies.get("smart_home_refrash_sso")
+		refresh = request.cookies.get("smart_home_refresh_sso")
 		if(access is None or refresh is None):
 			raise NoToken()
 		# if status != "ok":
@@ -160,7 +160,7 @@ def user_preveleg_dep_sso(privilege: str | settings.BASE_ROLE):
 		try:
 			# status = request.headers.get("x-status-auth")
 			access = request.cookies.get("smart_home_access_sso")
-			refresh = request.cookies.get("smart_home_refrash_sso")
+			refresh = request.cookies.get("smart_home_refresh_sso")
 			if(access is None or refresh is None):
 				raise NoToken()
 
