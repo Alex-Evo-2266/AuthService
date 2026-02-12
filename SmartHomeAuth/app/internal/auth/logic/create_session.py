@@ -24,13 +24,7 @@ async def create_session(user: User, host: str | None)->Session:
 	uuid = await get_uuid_user()
 	if not user:
 		raise UserNotFoundException()
-	tokens = await create_tokens(user)
-	a_b_tokens = await get_session_by_token(tokens.access)
-	r_b_tokens = await get_session_by_refresh_token(tokens.refresh)
-	while r_b_tokens or a_b_tokens:
-		tokens = await create_tokens(user)
-		a_b_tokens = await get_session_by_token(tokens.access)
-		r_b_tokens = await get_session_by_refresh_token(tokens.refresh)
+	tokens = await create_tokens(user, uuid)
 	session = await Session.objects.create(
 		id=uuid,
 		access=tokens.access, 

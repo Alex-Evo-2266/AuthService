@@ -21,17 +21,22 @@ async def verify_access_token(access_token: str):
         payload = jwt.decode(
             access_token,
             settings.SECRET_JWT_KEY,
-            algorithms=[settings.ALGORITHM]
+            algorithms=[settings.ALGORITHM],
+            options={
+                "verify_signature": True,
+                "verify_exp": True,
+            }
         )
     except jwt.ExpiredSignatureError:
         raise AccessExpired()
     except jwt.InvalidTokenError:
         raise InvalidAccess()
 
-    if payload.get("sub") != "access":
+    s_id = payload.get("session_id", None)
+    if payload.get("sub") != "access" or s_id is None:
         raise InvalidAccess()
 
-    session = await Session.objects.get_or_none(access=access_token)
+    session = await Session.objects.get_or_none(id=s_id)
     if not session:
         raise InvalidAccess()
 
@@ -64,7 +69,7 @@ async def verify_or_refresh_session(
             samesite="none",
         )
         response.set_cookie(
-            "smart_home_refrash_sso",
+            "smart_home_refresh_sso",
             session.refresh,
             httponly=True,
             secure=True,

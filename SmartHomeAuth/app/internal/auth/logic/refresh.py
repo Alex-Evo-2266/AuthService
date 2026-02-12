@@ -56,7 +56,7 @@ async def refresh_session(token: str)->Tokens:
 	u = await User.objects.get_or_none(id=data["user_id"])
 	if not u:
 		raise UserNotFoundException()
-	old_token = await Session.objects.get_or_none(refresh=token)
+	old_token: Session | None = await Session.objects.get_or_none(refresh=token)
 	encoded_jwt = None
 	if (not old_token):
 		old_token2 = OldTokens.get_or_none(token)
@@ -64,7 +64,7 @@ async def refresh_session(token: str)->Tokens:
 			raise InvalidInputException("not found token")
 		encoded_jwt = Tokens(expires_at=old_token2.expires_at, access=old_token2.new_access, refresh=old_token2.new_refresh)
 	else:
-		encoded_jwt = await create_tokens(u)
+		encoded_jwt = await create_tokens(u, old_token.id)
 		OldTokens.add(old_token.refresh, old_token.access, encoded_jwt.refresh, encoded_jwt.access, encoded_jwt.expires_at)
 		loop = asyncio.get_running_loop()
 		loop.create_task(OldTokens.delete_delay(old_token.refresh, 10))

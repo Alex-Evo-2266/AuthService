@@ -11,7 +11,7 @@ from app.internal.auth.exceptions.login import InvalidTempTokenException
 
 logger = logging.getLogger(__name__)
 
-async def create_tokens(user: User)->Tokens:
+async def create_tokens(user: User, session_id:str)->Tokens:
 	if not user:
 		raise UserNotFoundException()
 	access_toket_expire = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -20,13 +20,13 @@ async def create_tokens(user: User)->Tokens:
 	refresh_toket_expires_at = datetime.now(settings.TIMEZONE) + refresh_toket_expire
 	return Tokens(
 		access = await create_token(
-			data = {'user_id':user.id, "user_role": user.role.id},
+			data = {'user_id':user.id, "user_role": user.role.id, "session_id": session_id},
 			expires_at = access_toket_expires_at,
 			type = "access",
 			secret = settings.SECRET_JWT_KEY
 		),
 		refresh = await create_token(
-			data = {'user_id':user.id, "user_role": user.role.id},
+			data = {'user_id':user.id, "user_role": user.role.id, "session_id": session_id},
 			expires_at = refresh_toket_expires_at,
 			type = "refresh",
 			secret = settings.SECRET_REFRESH_JWT_KEY
