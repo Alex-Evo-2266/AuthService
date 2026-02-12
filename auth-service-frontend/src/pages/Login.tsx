@@ -1,12 +1,11 @@
 import { Form, Input, Button, Card, message, Skeleton } from "antd";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { AUTH_SERVICE_PREFIX } from "../const";
 import { useEffect } from "react";
 
 export default function LoginPage() {
   const { login, user, loading } = useAuth();
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams()
 
   const next = searchParams.get("next") || `${AUTH_SERVICE_PREFIX}/users`;
@@ -15,7 +14,7 @@ export default function LoginPage() {
     try {
       await login(values);
       message.success("Успешный вход");
-      navigate(next, {replace: true});
+      window.location.replace(next);
     } catch {
       message.error("Неверное имя или пароль");
     }
@@ -24,9 +23,9 @@ export default function LoginPage() {
   useEffect(()=>{
     if(!loading && user)
     {
-      navigate(next, {replace: true})
+      window.location.replace(next);
     }
-  },[user, next, navigate, loading])  
+  },[user, next, loading])  
 
   if (loading || user) {
     return <Skeleton/>; 
