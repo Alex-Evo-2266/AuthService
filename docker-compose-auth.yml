@@ -46,7 +46,7 @@ services:
       # общий сервис
       - "traefik.http.services.email.loadbalancer.server.port=8005"
     volumes:
-      - ./EmailService:/home/email_service/web
+      - ${AUTH_SERVICE_DIR}/EmailService:/home/email_service/web
       - media_voluem:/home/email_service/web/media
     depends_on:
       rabbitmq:
