@@ -12,26 +12,26 @@ export const apiEmail = axios.create({
   withCredentials: true, // чтобы cookie smart_home шли автоматически
 });
 
-const SMARTHOME_USER_DATA = "auth-user-data-sh"
+// const SMARTHOME_USER_DATA = "auth-user-data-sh"
 // let accessToken: string | null = null;
 
 // Устанавливаем токен после логина
-export const setUserData = (data: {    
-    role: string,
-    userId: string,
-    privileges: string[],
-} | null) => {
-    if(data === null)
-    {
-        localStorage.removeItem(SMARTHOME_USER_DATA)
-    }
-    else
-    {
-        localStorage.setItem(SMARTHOME_USER_DATA, JSON.stringify({
-            id: data.userId, role:data.role
-        }))
-    }
-};
+// export const setUserData = (data: {    
+//     role: string,
+//     userId: string,
+//     privileges: string[],
+// } | null) => {
+//     if(data === null)
+//     {
+//         localStorage.removeItem(SMARTHOME_USER_DATA)
+//     }
+//     else
+//     {
+//         localStorage.setItem(SMARTHOME_USER_DATA, JSON.stringify({
+//             id: data.userId, role:data.role
+//         }))
+//     }
+// };
 
 // Интерцептор добавляет Authorization
 // api.interceptors.request.use((config) => {

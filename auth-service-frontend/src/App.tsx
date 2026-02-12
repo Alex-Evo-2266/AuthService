@@ -17,7 +17,6 @@ const { Header, Content } = Layout;
 function AppLayout() {
   const { user, logout } = useAuth();
   const location = useLocation()
-
   return (
     <Layout style={{ minHeight: "100vh", width: "100%" }}>
       <Header>
@@ -53,10 +52,7 @@ function AppLayout() {
       </Header>
       <Content style={{ padding: "24px" }}>
         <Routes>
-          <Route path={`${AUTH_SERVICE_PREFIX}/login`} element={<LoginPage />} />
-          {
-            user?
-            <>
+              <Route path={`${AUTH_SERVICE_PREFIX}/login`} element={<LoginPage />} />
               <Route path={`${AUTH_SERVICE_PREFIX}/users`} element={<ProtectedRoute><Users /></ProtectedRoute>} />
               <Route path={`${AUTH_SERVICE_PREFIX}/roles`} element={<ProtectedRoute><Roles /></ProtectedRoute>} />
               <Route path={`${AUTH_SERVICE_PREFIX}/privileges`} element={<ProtectedRoute><Privileges /></ProtectedRoute>} />
@@ -69,12 +65,7 @@ function AppLayout() {
               }
               <Route path={`${AUTH_SERVICE_PREFIX}/*`} element={<Navigate replace to={`${AUTH_SERVICE_PREFIX}/users`} />} />
               <Route path="/*" element={<Navigate replace to={`${AUTH_SERVICE_PREFIX}/users`} />} />
-            </>:
-            <>
-              <Route path={`${AUTH_SERVICE_PREFIX}/*`} element={<Navigate replace to={`${AUTH_SERVICE_PREFIX}/login?next=${AUTH_SERVICE_PREFIX}/users`} />} />
-              <Route path="/*" element={<Navigate replace to={`${AUTH_SERVICE_PREFIX}/login`} />} />
-            </>
-          }
+              <Route path="/*" element={<Navigate replace to={`${AUTH_SERVICE_PREFIX}/login?next=${AUTH_SERVICE_PREFIX}/users`} />} />
         </Routes>
       </Content>
     </Layout>

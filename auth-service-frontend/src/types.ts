@@ -96,3 +96,10 @@ export type MeData = {
     user_name: string,
     role: Role
 }
+
+export type AuthData = {
+  userId: string;
+  userName: string
+  role: string;
+  privileges: string[];
+}

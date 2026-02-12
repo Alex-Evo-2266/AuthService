@@ -1,5 +1,5 @@
-import type { MeData } from "../types";
-import { api, setUserData } from "./axios";
+import type { AuthData, MeData } from "../types";
+import { api } from "./axios";
 
 export interface LoginForm {
   name: string;
@@ -9,14 +9,17 @@ export interface LoginForm {
 export const useAuthAPI = () => {
 
     const me = async () => {
-    const respMe = await api.get<MeData>("/sso/me");
-    const d = {
-      role: respMe.data.role.role_name,
-      userId: respMe.data.user_id,
-      privileges: respMe.data.role.privileges.map(i=>i.privilege.trim()),
-    };
-    setUserData(d);
-    return d;
+      try{
+        const respMe = await api.get<MeData>("/sso/me");
+        const d:AuthData = {
+          role: respMe.data.role.role_name,
+          userId: respMe.data.user_id,
+          userName: respMe.data.user_name,
+          privileges: respMe.data.role.privileges.map(i=>i.privilege.trim()),
+        };
+        return d;
+      }
+      catch{}
   }
 
   const login = async (data: LoginForm) => {
@@ -29,7 +32,6 @@ export const useAuthAPI = () => {
 
   const logout = async () => {
     await api.get("/sso/logout");
-    setUserData(null);
   };
 
   const checkAuth = async () => {

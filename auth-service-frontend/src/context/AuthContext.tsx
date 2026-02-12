@@ -1,18 +1,13 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { useAuthAPI, type LoginForm } from "../api/auth";
 import type { AxiosResponse } from "axios";
-import { setUserData } from "../api/axios";
-
-export interface AuthData {
-  userId: string;
-  role: string;
-  privileges: string[];
-}
+import type { AuthData } from "../types";
 
 interface AuthContextType {
-  user: AuthData | null;
+  user: AuthData | undefined;
   login: (data: LoginForm) => Promise<void>;
   logout: () => Promise<void>;
+  loading: boolean
 }
 
 const SMARTHOME_USER_DATA = "sh_auth_serv_user"
@@ -20,48 +15,57 @@ const SMARTHOME_USER_DATA = "sh_auth_serv_user"
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-    const [user, setUser] = useState<AuthData | null>(null);
-    const {login: apiLogin, logout:apiLogout} = useAuthAPI()
+    const [user, setUser] = useState<AuthData | undefined>(undefined);
+    const [loading, setLoading] = useState(false)
+    const {login: apiLogin, logout:apiLogout, me} = useAuthAPI()
 
     const login = async (data: LoginForm) => {
         const u = await apiLogin(data);
-        localStorage.setItem(SMARTHOME_USER_DATA, JSON.stringify({
-            userId: u.userId, role:u.role, privileges: u.privileges
-        }))
-        setUser(u);
+        if(u)
+        {
+          localStorage.setItem(SMARTHOME_USER_DATA, JSON.stringify({
+              userId: u.userId, role:u.role, privileges: u.privileges, userName: u.userName
+          }))
+          setUser(u);
+        }
     };
 
     const logout = async () => {
-        setUser(null);
+        setUser(undefined);
         localStorage.removeItem(SMARTHOME_USER_DATA)
         await apiLogout();
     };
 
-    useEffect(()=>{
-      const data = initState()
-      setUser(data)
+    const load = useCallback(async()=>{
+      setLoading(true)
+      let data = initState()
       if(!data){
-        setUserData(null);
-        // logout()
+        data = await me()
       }
+      setUser(data)
+      setLoading(false)
     },[])
 
-    const initState = ():AuthData | null => {
+    useEffect(()=>{
+      load()
+    },[load])
+
+    const initState = ():AuthData | undefined => {
         let datauser = localStorage.getItem(SMARTHOME_USER_DATA)
-        console.log(datauser)
         if (!datauser)
-            return null
+            return undefined
         const data = JSON.parse(datauser)
         let newdata: AuthData = {
             userId: data?.userId || undefined,
             role: data?.role || "",
+            userName: data?.userName,
             privileges: data?.privileges || [],
         }
         return newdata
     }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );
