@@ -63,15 +63,15 @@ async def session_dep(request: Request)->SessionDepData:
 		}
 		jwtdata = getJWT(headers_data["Authorization"])
 		if not jwtdata:
-			raise HTTPException(status_code=403, detail="invalid jwt")
+			raise HTTPException(status_code=401, detail="invalid jwt")
 		auth_data = await auth(jwtdata)
 		if not auth_data.user or not auth_data.role:
 			logger.error(f"user or role not found")
-			raise HTTPException(status_code=403, detail="user or role not found")
+			raise HTTPException(status_code=401, detail="user or role not found")
 		u_session = await Session.objects.get_or_none(access=jwtdata, user=auth_data.user)
 		if not u_session:
 			logger.error(f"session not found")
-			raise HTTPException(status_code=403, detail="session not found")
+			raise HTTPException(status_code=401, detail="session not found")
 		return SessionDepData(user=auth_data.user, role=auth_data.role, session=u_session)
 	except HTTPException as e:
 		raise
@@ -79,7 +79,7 @@ async def session_dep(request: Request)->SessionDepData:
 		raise HTTPException(status_code=401, detail="outdated jwt")
 	except Exception as e:
 		logger.warning(f"token_dep error {e}")
-		raise HTTPException(status_code=403, detail="invalid jwt")
+		raise HTTPException(status_code=401, detail="invalid jwt")
 	
 def check_privilege(role: Role, privilege:str):
 	return True
@@ -98,7 +98,7 @@ def user_preveleg_dep(privilege: str | settings.BASE_ROLE):
 			}
 			jwtdata = getJWT(headers_data["Authorization"])
 			if not jwtdata:
-				raise HTTPException(status_code=403, detail="invalid jwt")
+				raise HTTPException(status_code=401, detail="invalid jwt")
 			auth_data = await auth(jwtdata)
 			if not auth_data.user or not auth_data.role:
 				logger.error(f"user or role not found")
@@ -110,7 +110,7 @@ def user_preveleg_dep(privilege: str | settings.BASE_ROLE):
 			u_session = await Session.objects.get_or_none(access=jwtdata, user=auth_data.user)
 			if not u_session:
 				logger.error(f"session not found")
-				raise HTTPException(status_code=403, detail="session not found")
+				raise HTTPException(status_code=401, detail="session not found")
 			return SessionDepData(user=auth_data.user, role=auth_data.role, session=u_session)
 		except HTTPException as e:
 			raise
@@ -118,7 +118,7 @@ def user_preveleg_dep(privilege: str | settings.BASE_ROLE):
 			raise HTTPException(status_code=401, detail="outdated jwt")
 		except Exception as e:
 			logger.warning(f"token_dep error {e}")
-			raise HTTPException(status_code=403, detail="invalid jwt")
+			raise HTTPException(status_code=401, detail="invalid jwt")
 	return _user_role_dep
 
 
@@ -147,8 +147,10 @@ async def session_dep_sso(request: Request, response: Response) -> SessionDepDat
 		# u_session = await Session.objects.get_or_none(access=access, user=user)
 		if not u_session:
 			logger.error(f"session not found")
-			raise HTTPException(status_code=403, detail="session not found")
+			raise HTTPException(status_code=401, detail="session not found")
 		return SessionDepData(user=u_session.user, role=u_session.user.role, session=u_session)
+	except NoToken as e:
+			raise HTTPException(status_code=401, detail=str(e))
 	except Exception as e:
 		raise HTTPException(status_code=400, detail=str(e))
 
@@ -184,8 +186,10 @@ def user_preveleg_dep_sso(privilege: str | settings.BASE_ROLE):
 				return HTTPException(status_code=403, detail="not enough rights for the operation.")
 			if not u_session:
 				logger.error(f"session not found")
-				raise HTTPException(status_code=403, detail="session not found")
+				raise HTTPException(status_code=401, detail="session not found")
 			return SessionDepData(user=u_session.user, role=u_session.user.role, session=u_session)
+		except NoToken as e:
+			raise HTTPException(status_code=401, detail=str(e))
 		except Exception as e:
 			raise HTTPException(status_code=400, detail=str(e))
 	return _session_dep_sso

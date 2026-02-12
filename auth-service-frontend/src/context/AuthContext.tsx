@@ -1,68 +1,82 @@
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { useAuthAPI, type LoginForm } from "../api/auth";
 import type { AxiosResponse } from "axios";
 import type { AuthData } from "../types";
 
 interface AuthContextType {
-  user: AuthData | undefined;
+  user?: AuthData;
   login: (data: LoginForm) => Promise<void>;
   logout: () => Promise<void>;
-  loading: boolean
+  loading: boolean;
 }
 
-const SMARTHOME_USER_DATA = "sh_auth_serv_user"
+const STORAGE_KEY = "sh_auth_serv_user";
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-    const [user, setUser] = useState<AuthData | undefined>(undefined);
-    const [loading, setLoading] = useState(false)
-    const {login: apiLogin, logout:apiLogout, me} = useAuthAPI()
+  const [user, setUser] = useState<AuthData | undefined>();
+  const [loading, setLoading] = useState(true);
 
-    const login = async (data: LoginForm) => {
-        const u = await apiLogin(data);
-        if(u)
-        {
-          localStorage.setItem(SMARTHOME_USER_DATA, JSON.stringify({
-              userId: u.userId, role:u.role, privileges: u.privileges, userName: u.userName
-          }))
-          setUser(u);
-        }
-    };
+  const { login: apiLogin, logout: apiLogout, me } = useAuthAPI();
 
-    const logout = async () => {
-        setUser(undefined);
-        localStorage.removeItem(SMARTHOME_USER_DATA)
-        await apiLogout();
-    };
+  const restoreFromStorage = (): AuthData | undefined => {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return undefined;
 
-    const load = useCallback(async()=>{
-      setLoading(true)
-      let data = initState()
-      if(!data){
-        data = await me()
-      }
-      setUser(data)
-      setLoading(false)
-    },[])
-
-    useEffect(()=>{
-      load()
-    },[load])
-
-    const initState = ():AuthData | undefined => {
-        let datauser = localStorage.getItem(SMARTHOME_USER_DATA)
-        if (!datauser)
-            return undefined
-        const data = JSON.parse(datauser)
-        let newdata: AuthData = {
-            userId: data?.userId || undefined,
-            role: data?.role || "",
-            userName: data?.userName,
-            privileges: data?.privileges || [],
-        }
-        return newdata
+    try {
+      return JSON.parse(raw) as AuthData;
+    } catch {
+      return undefined;
     }
+  };
+
+  const loadUser = useCallback(async () => {
+    setLoading(true);
+
+    let data = restoreFromStorage();
+
+    if (!data) {
+      data = await me();
+    }
+
+    if (data) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } else {
+      localStorage.removeItem(STORAGE_KEY);
+    }
+
+    setUser(data);
+    setLoading(false);
+  }, [me]);
+
+  useEffect(() => {
+    loadUser();
+  }, [loadUser]);
+
+  const login = async (form: LoginForm) => {
+    setLoading(true);
+    const data = await apiLogin(form);
+
+    if (data) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      setUser(data);
+    }
+
+    setLoading(false);
+  };
+
+  const logout = async () => {
+    setUser(undefined);
+    localStorage.removeItem(STORAGE_KEY);
+    await apiLogout();
+  };
 
   return (
     <AuthContext.Provider value={{ user, login, logout, loading }}>
@@ -78,23 +92,16 @@ export const useAuth = () => {
 };
 
 export const usePrivilege = (privilege: string) => {
-  const {user} = useAuth()
-
-  return{
-    valid_privilege: !!(user && user.privileges.includes(privilege))
-  }
+  const { user } = useAuth();
+  return !!user?.privileges?.includes(privilege);
 };
 
 export const useErrorLogout = () => {
-  const {logout} = useAuth()
+  const { logout } = useAuth();
 
-  return <T, Y>(data:Promise<AxiosResponse<T, Y>>):Promise<AxiosResponse<T, Y>> => {
-          return data.then(val=>{
-              return val
-          }).catch(err=>{
-              if(err.status === 401)
-                  logout()
-              throw err
-          })
-      }
-}
+  return <T, Y>(req: Promise<AxiosResponse<T, Y>>) =>
+    req.catch((err) => {
+      if (err?.response?.status === 401) logout();
+      throw err;
+    });
+};

@@ -121,7 +121,8 @@ export const apiEmail = axios.create({
 //   (resp) => resp,
 //   async (error) => {
 //     if (error.response?.status === 401) {
-//       window.location.href = `${AUTH_SERVICE_PREFIX}/login`
+//         apiLogout.get("/sso/logout");
+//         window.location.replace(`${AUTH_SERVICE_PREFIX}/login`)
 //     }
 //     return Promise.reject(error);
 //   }
