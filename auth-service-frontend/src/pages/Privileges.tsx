@@ -11,7 +11,7 @@ export default function Privileges() {
   const [loading, setLoading] = useState(true);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [form] = Form.useForm();
-  const {valid_privilege} = usePrivilege(EDIT_ROLE)
+  const valid_privilege = usePrivilege(EDIT_ROLE)
   const {getPrivileges, addPrivilege} = usePrivilegesAPI()
   const {deleteRole} = useRoleAPI()
 

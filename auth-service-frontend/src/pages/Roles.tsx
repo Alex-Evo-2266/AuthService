@@ -9,7 +9,7 @@ import RolePrivilegeModal from "../components/RolePrivilegeModal";
 export default function Roles() {
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
-  const {valid_privilege} = usePrivilege(EDIT_ROLE)
+  const valid_privilege = usePrivilege(EDIT_ROLE)
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [modalEditVisible, setModalEditVisible] = useState<null | Role>(null);
   const {getRoles, deleteRole, addRole} = useRoleAPI()

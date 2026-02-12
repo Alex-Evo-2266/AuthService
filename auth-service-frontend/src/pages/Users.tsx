@@ -13,10 +13,10 @@ export default function Users() {
   const [users, setUsers] = useState<UserSchema[]>([]);
   const [loading, setLoading] = useState(true);
   const {user} = useAuth()
-  const {valid_privilege:valid_add} = usePrivilege(ADD_USER)
-  const {valid_privilege:valid_edit} = usePrivilege(EDIT_USER)
-  const {valid_privilege:valid_delete} = usePrivilege(DELETE_USER)
-  const {valid_privilege:valid_edit_role} = usePrivilege(EDIT_ROLE_USER)
+  const valid_add = usePrivilege(ADD_USER)
+  const valid_edit = usePrivilege(EDIT_USER)
+  const valid_delete = usePrivilege(DELETE_USER)
+  const valid_edit_role = usePrivilege(EDIT_ROLE_USER)
   const [editRoleUserModal, setEditRoleUserModal] = useState<null | UserSchema>(null);
   const [editUserModal, setEditUserModal] = useState<null | UserSchema>(null);
   const [editPasswordModel, setEditPasswordModel] = useState<boolean>(false);
