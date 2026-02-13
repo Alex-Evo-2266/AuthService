@@ -99,7 +99,7 @@ services:
       - "traefik.http.middlewares.auth.forwardauth.authResponseHeaders=x-user-id,x-user-role,x-access-token,x-user-privilege"
 
       # middleware для iframe-сервисов
-      - "traefik.http.middlewares.moduleauth.forwardauth.address=http://auth_service:8004/api/api-auth/module-service/check"
+      - "traefik.http.middlewares.moduleauth.forwardauth.address=http://auth_service:8004/api/api-auth/sso/module-service/check"
       - "traefik.http.middlewares.moduleauth.forwardauth.trustforwardheader=true"
       - "traefik.http.middlewares.moduleauth.forwardauth.authrequestheaders=Cookie,X-Original-Uri"
       - "traefik.http.middlewares.moduleauth.forwardauth.authResponseHeaders=x-user-id,x-user-role,x-access-token,x-user-privilege"

@@ -1,7 +1,7 @@
 import logging
 from app.configuration.settings import ROUTE_PREFIX
 
-from fastapi import APIRouter, Response, Depends, Request
+from fastapi import APIRouter, Response, Depends, Request, HTTPException
 from fastapi.responses import JSONResponse
 
 from app.internal.auth.logic.login import login_data_check
@@ -9,12 +9,13 @@ from app.internal.auth.logic.create_session import create_session
 from app.internal.auth.logic.get_session import get_token
 from app.internal.auth.logic.delete_session import delete_session
 from app.internal.role.logic.get_privilege import get_privilege
-from app.internal.auth.schemas.auth import Login, MeSchems
+from app.internal.auth.schemas.auth import Login, MeSchems, TempTokenData
 from app.internal.auth.schemas.depends import SessionDepData
 from app.internal.auth.depends.auth import session_dep_sso
 from app.internal.role.logic.get_role import get_role_by_id
 from app.internal.role.serialization.map_role import map_role
 from app.internal.auth.logic.verify_access import verify_or_refresh_session
+from app.internal.auth.routes.utils import generate_temp_token, handle_existing_session, handle_temp_token, parse_forwarded_uri
 from app.internal.auth.exceptions.access import InvalidAccess
 
 logger = logging.getLogger(__name__)
@@ -137,3 +138,26 @@ async def me(userData: SessionDepData = Depends(session_dep_sso)):
     role = await map_role(userData.role)
     
     return MeSchems(user_id=userData.user.id, user_name=userData.user.name, role=role)
+
+@router.get("/module-service/temp-token", response_model=TempTokenData)
+async def get_temp_token(service: str, session: SessionDepData = Depends(session_dep_sso)):
+    """Эндпоинт для генерации временного токена."""
+    return await generate_temp_token(session.user, session.role, service)
+
+
+@router.get("/module-service/check")
+async def check_user(request: Request):
+    """
+    Проверка пользователя при обращении к модульному сервису.
+    """
+    try:
+        forwarded_uri, dest, scheme, host, service, inner_path, temp_token = parse_forwarded_uri(request)
+        if temp_token:
+            return await handle_temp_token(temp_token, forwarded_uri, scheme, host, inner_path, service, dest)
+        return await handle_existing_session(request, inner_path, dest)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("Ошибка при проверке пользователя")
+        raise HTTPException(400, f"Unexpected error: {str(e)}")
