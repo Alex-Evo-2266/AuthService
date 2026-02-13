@@ -46,11 +46,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     let data = await me();
     // }
 
-    if (data) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    } else {
-      localStorage.removeItem(STORAGE_KEY);
-    }
+    // if (data) {
+    //   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    // } else {
+    //   localStorage.removeItem(STORAGE_KEY);
+    // }
 
     setUser(data);
     setLoading(false);
