@@ -26,16 +26,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const { login: apiLogin, logout: apiLogout, me } = useAuthAPI();
 
-  const restoreFromStorage = (): AuthData | undefined => {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return undefined;
+  // const restoreFromStorage = (): AuthData | undefined => {
+  //   const raw = localStorage.getItem(STORAGE_KEY);
+  //   if (!raw) return undefined;
 
-    try {
-      return JSON.parse(raw) as AuthData;
-    } catch {
-      return undefined;
-    }
-  };
+  //   try {
+  //     return JSON.parse(raw) as AuthData;
+  //   } catch {
+  //     return undefined;
+  //   }
+  // };
 
   const loadUser = useCallback(async () => {
     setLoading(true);
@@ -65,7 +65,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const data = await apiLogin(form);
 
     if (data) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      // localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
       setUser(data);
     }
 
@@ -74,7 +74,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const logout = async () => {
     setUser(undefined);
-    localStorage.removeItem(STORAGE_KEY);
+    // localStorage.removeItem(STORAGE_KEY);
     await apiLogout();
   };
 
