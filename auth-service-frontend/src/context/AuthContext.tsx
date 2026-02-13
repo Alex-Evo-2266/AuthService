@@ -40,11 +40,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const loadUser = useCallback(async () => {
     setLoading(true);
 
-    let data = restoreFromStorage();
+    // let data = restoreFromStorage();
 
-    if (!data) {
-      data = await me();
-    }
+    // if (!data) {
+    let data = await me();
+    // }
 
     if (data) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
