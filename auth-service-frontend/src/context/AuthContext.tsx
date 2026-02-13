@@ -16,7 +16,7 @@ interface AuthContextType {
   loading: boolean;
 }
 
-const STORAGE_KEY = "sh_auth_serv_user";
+// const STORAGE_KEY = "sh_auth_serv_user";
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
