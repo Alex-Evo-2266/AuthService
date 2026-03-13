@@ -16,7 +16,7 @@ from app.internal.role.logic.get_role import get_role_by_id
 from app.internal.role.serialization.map_role import map_role
 from app.internal.auth.logic.verify_access import verify_or_refresh_session
 from app.internal.auth.routes.utils import generate_temp_token, handle_existing_session, handle_temp_token, parse_forwarded_uri
-from app.internal.auth.exceptions.access import InvalidAccess
+from app.internal.auth.exceptions.access import InvalidAccess, InvalidRefrash
 
 logger = logging.getLogger(__name__)
 
@@ -101,6 +101,8 @@ async def check_user(request: Request):
 
 
     except InvalidAccess:
+        return JSONResponse({"detail": "unauthorized"}, status_code=401)
+    except InvalidRefrash:
         return JSONResponse({"detail": "unauthorized"}, status_code=401)
 
     except Exception as e:

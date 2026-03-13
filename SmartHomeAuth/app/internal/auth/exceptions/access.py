@@ -12,6 +12,20 @@ class InvalidAccess(Exception):
 		else:
 			return "InvalidAccess"
 		
+
+class InvalidRefrash(Exception):
+	def __init__(self, *args: object) -> None:
+		if args:
+			self.message = args[0]
+		else:
+			self.message = "invalid refrash"
+	
+	def __str__(self) -> str:
+		if self.message:
+			return f"InvalidRefrash, {self.message}"
+		else:
+			return "InvalidRefrash"
+		
 class AccessExpired(Exception):
 	def __init__(self, *args: object) -> None:
 		if args:

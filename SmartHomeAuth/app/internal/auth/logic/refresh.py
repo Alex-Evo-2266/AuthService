@@ -2,7 +2,7 @@ import jwt, logging, asyncio
 from jwt import ExpiredSignatureError
 from datetime import datetime
 from app.configuration import settings
-from app.internal.exceptions.base import InvalidInputException
+from app.internal.auth.exceptions.access import InvalidRefrash
 
 from app.internal.user.models.user import User
 from app.internal.user.exceptions.user import UserNotFoundException
@@ -19,7 +19,7 @@ async def refresh_token(token: str)->Tokens:
 	data = jwt.decode(token,settings.SECRET_REFRESH_JWT_KEY,algorithms=[settings.ALGORITHM])
 	if not('exp' in data and 'user_id' in data and data['sub'] == "refresh"):
 		logger.warning(f"no data in jwt")
-		raise InvalidInputException("no data in jwt")
+		raise InvalidRefrash("no data in jwt")
 	if (datetime.now(settings.TIMEZONE) > datetime.fromtimestamp(data['exp'], settings.TIMEZONE)):
 		logger.debug(f"outdated jwt")
 		raise ExpiredSignatureError("outdated jwt")
@@ -31,7 +31,7 @@ async def refresh_token(token: str)->Tokens:
 	if (not old_token):
 		old_token2 = OldTokens.get_or_none(token)
 		if not old_token2:
-			raise InvalidInputException("not found token")
+			raise InvalidRefrash("not found token")
 		encoded_jwt = Tokens(expires_at=old_token2.expires_at, access=old_token2.new_access, refresh=old_token2.new_refresh)
 	else:
 		encoded_jwt = await create_tokens(u)
@@ -49,7 +49,7 @@ async def refresh_session(token: str)->Tokens:
 	data = jwt.decode(token,settings.SECRET_REFRESH_JWT_KEY,algorithms=[settings.ALGORITHM])
 	if not('exp' in data and 'user_id' in data and data['sub'] == "refresh"):
 		logger.warning(f"no data in jwt")
-		raise InvalidInputException("no data in jwt")
+		raise InvalidRefrash("no data in jwt")
 	if (datetime.now(settings.TIMEZONE) > datetime.fromtimestamp(data['exp'], settings.TIMEZONE)):
 		logger.debug(f"outdated jwt")
 		raise ExpiredSignatureError("outdated jwt")
@@ -61,7 +61,7 @@ async def refresh_session(token: str)->Tokens:
 	if (not old_token):
 		old_token2 = OldTokens.get_or_none(token)
 		if not old_token2:
-			raise InvalidInputException("not found token")
+			raise InvalidRefrash("not found token")
 		encoded_jwt = Tokens(expires_at=old_token2.expires_at, access=old_token2.new_access, refresh=old_token2.new_refresh)
 	else:
 		encoded_jwt = await create_tokens(u, old_token.id)
