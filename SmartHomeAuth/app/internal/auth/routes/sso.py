@@ -104,7 +104,7 @@ async def check_user(request: Request):
         return JSONResponse({"detail": "unauthorized"}, status_code=401)
 
     except Exception as e:
-        return JSONResponse({"detail": "forbidden"}, status_code=403)
+        return JSONResponse({"detail": "forbidden", "message": str(e)}, status_code=403)
 
     role = await get_role_by_id(session.user.role.id)
     response.headers.update({
