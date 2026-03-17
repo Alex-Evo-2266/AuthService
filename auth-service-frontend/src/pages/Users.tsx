@@ -2,12 +2,12 @@ import { useEffect, useState } from "react";
 import { Table, Button, Popconfirm, message, Space } from "antd";
 import { useUserAPI } from "../api/users";
 import type { UserSchema } from "../types";
-import { useAuth, usePrivilege } from "../context/AuthContext";
 import { ADD_USER, AUTH_SERVICE_PREFIX, DELETE_USER, EDIT_ROLE_USER, EDIT_USER } from "../const";
 import RoleModal from "../components/RoleModal";
 import { NavLink } from "react-router-dom";
 import UserModal from "../components/UserEditModal";
 import PasswordEditModal from "../components/PasswordEditDialog";
+import { useAuth, usePrivilege } from "alex-evo-sh-auth";
 
 export default function Users() {
   const [users, setUsers] = useState<UserSchema[]>([]);

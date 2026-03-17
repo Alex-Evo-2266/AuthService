@@ -4,6 +4,8 @@ from app.internal.role.logic.get_privilege import get_privilege_by_privilege
 from app.configuration.settings import BASE_PRIVILEGE_NAME, AUTH_PIVILEGES
 
 def getPrivileges():
+    if not AUTH_PIVILEGES:
+        return []
     return [item.strip() for item in AUTH_PIVILEGES.split(",")]
 
 privieges = [
@@ -12,6 +14,7 @@ privieges = [
     "user.editrole",
     "user.delete",
     "role.edit",
+    "client.edit",
     BASE_PRIVILEGE_NAME,
     *(getPrivileges())
 ]

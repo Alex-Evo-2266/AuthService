@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { Table, Button, Popconfirm, message, Space, Typography, Modal, Form, Input } from "antd";
 import { useRoleAPI } from "../api/role";
 import type { Role } from "../types";
-import { usePrivilege } from "../context/AuthContext";
 import { EDIT_ROLE } from "../const";
 import RolePrivilegeModal from "../components/RolePrivilegeModal";
+import { usePrivilege } from "alex-evo-sh-auth";
 
 export default function Roles() {
   const [roles, setRoles] = useState<Role[]>([]);

@@ -3,8 +3,8 @@ import { Table, Button, Popconfirm, message, Space, Modal, Form, Input } from "a
 import { useRoleAPI } from "../api/role";
 import type { Privilege } from "../types";
 import { usePrivilegesAPI } from "../api/privileges";
-import { usePrivilege } from "../context/AuthContext";
 import { EDIT_ROLE } from "../const";
+import { usePrivilege } from "alex-evo-sh-auth";
 
 export default function Privileges() {
   const [roles, setRoles] = useState<Privilege[]>([]);

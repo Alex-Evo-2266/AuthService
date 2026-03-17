@@ -36,6 +36,16 @@ services:
       - ${RABITMQ_OUT_PORT}:15672
       - ${RABITMQ_PORT}:${RABITMQ_PORT}
 
+  phpmyadmin:
+    image: phpmyadmin
+    restart: always
+    networks: 
+      - local_auth_network
+    ports:
+      - 8088:80
+    environment:
+      - PMA_ARBITRARY=1
+
 networks:
   local_auth_network:
     name: ${NETWORK_NAME}

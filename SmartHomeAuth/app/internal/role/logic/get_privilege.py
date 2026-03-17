@@ -21,6 +21,7 @@ async def get_privilege(role: Role)->List[Privilege]:
 			return await get_privilege_all()
 		include_base = False
 		privileges = []
+		role = await Role.objects.select_related("privileges").get(id=role.id)
 		for x in role.privileges:
 			await x.load()
 			privileges.append(x)

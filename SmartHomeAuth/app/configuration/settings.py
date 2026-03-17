@@ -23,9 +23,8 @@ print("bd: ",DB_URL)
 
 ORIGINS = ["localhost",'127.0.0.1','192.168.0.9','192.168.0.4']
 
-
 ALGORITHM = 'HS256'
-ACCESS_TOKEN_EXPIRE_MINUTES = 15
+ACCESS_TOKEN_EXPIRE_MINUTES = 2
 REFRESH_TOKEN_EXPIRE_MINUTES = 60 * 24 * 2
 MODULE_TOKEN_EXPIRE_MINUTES = 60 * 24
 SECRET_JWT_KEY = "smart-home-auth-cxgjhmngfxdfng45"
@@ -54,6 +53,12 @@ ADMIN_BASE_LOGIN = "admin"
 ADMIN_BASE_PASSWORD = "admin"
 
 BASE_PRIVILEGE_NAME = "base"
+
+
+AUTH_FRONTEND = "/auth-service"
+
+AUTH_ID_SERVICE = os.environ.get("AUTH_ID_SERVICE", "auth-sdfnxdgdxfbb")
+ID_SERVICES = os.environ.get("ID_SERVICES", "")
 
 
 class BASE_ROLE(str, Enum):
