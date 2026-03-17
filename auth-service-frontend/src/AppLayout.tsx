@@ -1,22 +1,21 @@
-import { Layout } from "antd";
+import { Layout, Skeleton } from "antd";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { HeaderComponent } from "./Header";
-import { PublicGate } from "./PublicGate";
-import { ProtectGate } from "./ProtectGate";
-import { PrivilegeGate } from "./PrivilegeGate";
 import {
   AUTH_SERVICE_PREFIX,
   ADD_USER,
   EMAIL_CONFIG,
 } from "./const";
 
-import LoginPage from "./pages/Login";
 import Users from "./pages/Users";
 import Roles from "./pages/Roles";
 import Privileges from "./pages/Privileges";
 import SessionPage from "./pages/Sessions";
 import AddUser from "./pages/AddUser";
 import EmailConfigs from "./pages/ConfigEmail";
+import AutorizePage from "./pages/Autorize";
+import { CallbackPage, PrivilegeGate, ProtectGate } from "alex-evo-sh-auth";
+import ClientsPage from "./pages/Clients";
 
 const { Content } = Layout;
 
@@ -27,12 +26,14 @@ export function AppLayout() {
       <Content style={{ padding: 24 }}>
         <Routes>
           {/* PUBLIC */}
-          <Route element={<PublicGate />}>
-            <Route
-              path={`${AUTH_SERVICE_PREFIX}/login`}
-              element={<LoginPage />}
-            />
-          </Route>
+          <Route
+            path={`${AUTH_SERVICE_PREFIX}/authorize`}
+            element={<AutorizePage />}
+          />
+          <Route
+            path={`${AUTH_SERVICE_PREFIX}/callback`}
+            element={<CallbackPage/>}
+          />
 
           {/* AUTH */}
           <Route element={<ProtectGate />}>
@@ -52,16 +53,36 @@ export function AppLayout() {
               path={`${AUTH_SERVICE_PREFIX}/sessions`}
               element={<SessionPage />}
             />
+            <Route
+              path={`${AUTH_SERVICE_PREFIX}/clients`}
+              element={<ClientsPage />}
+            />
 
             {/* PRIVILEGES */}
-            <Route element={<PrivilegeGate privilege={ADD_USER} />}>
+            <Route element={<PrivilegeGate 
+                  privilege={ADD_USER} 
+                  loadingPage={<Skeleton/>}
+                  invalidPage={<Navigate
+                    replace
+                    to={`${AUTH_SERVICE_PREFIX}/users`}
+                  />}
+                />}
+                >
               <Route
                 path={`${AUTH_SERVICE_PREFIX}/users/add`}
                 element={<AddUser />}
               />
             </Route>
 
-            <Route element={<PrivilegeGate privilege={EMAIL_CONFIG} />}>
+            <Route element={<PrivilegeGate 
+            privilege={EMAIL_CONFIG} 
+            loadingPage={<Skeleton/>}
+            invalidPage={<Navigate
+                    replace
+                    to={`${AUTH_SERVICE_PREFIX}/users`}
+                  />}
+                  />}
+                  >
               <Route
                 path={`${AUTH_SERVICE_PREFIX}/email-configs`}
                 element={<EmailConfigs />}

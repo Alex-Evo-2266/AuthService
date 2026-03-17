@@ -2,7 +2,8 @@ import jwt, logging
 from jwt import ExpiredSignatureError
 from datetime import datetime
 from typing import Annotated, Optional
-from fastapi import Header, HTTPException, Request, Response
+from fastapi import Header, HTTPException, Request, Response, Depends
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from app.configuration import settings
 from app.internal.exceptions.base import InvalidInputException
@@ -16,8 +17,11 @@ from app.internal.role.models.role import Role
 from app.internal.auth.schemas.depends import AuthHeaders, UserDepData, SessionDepData
 from app.internal.auth.models.auth import Session
 
+from app.internal.auth.logic.oauth.jwt import decode_token
+
 logger = logging.getLogger(__name__)
 
+security = HTTPBearer()
 
 class RoleNotAssignedException(Exception):
 	def __init__(self, *args: object) -> None:
@@ -193,3 +197,76 @@ def user_preveleg_dep_sso(privilege: str | settings.BASE_ROLE):
 		except Exception as e:
 			raise HTTPException(status_code=400, detail=str(e))
 	return _session_dep_sso
+
+
+async def auth_oauth(jwtdata:str)->UserDepData:
+	data = decode_token(jwtdata)
+	if not('exp' in data and 'type' in data and data['type'] == "access" and 'sub' in data ):
+		logger.warning(f"no data in jwt")
+		raise InvalidInputException("no data in jwt")
+	user = await get_user(data['sub'])
+	logger.info(f"the user is logged in. id:{data['sub']}")
+	await user.role.load()
+	return UserDepData(user=user, role=user.role)
+
+
+async def user_oauth_dep(request: Request)->UserDepData:
+	try:
+		headers_data = { 
+			"Authorization": request.headers.get("authorization"),
+			"X_status_auth": request.headers.get("x-status-auth"),
+			"X_forwarded_for": request.headers.get("x-forwarded-for"),
+			"X_user_id": request.headers.get("x-user-id"),
+			"X_user_role": request.headers.get("x-user-role"),
+			"Host": request.headers.get("host"),
+			"X_user_privilege": request.headers.get("x-user-privilege"),
+		}
+		jwtdata = getJWT(headers_data["Authorization"])
+		if not jwtdata:
+			raise HTTPException(status_code=401, detail="invalid jwt")
+		auth_data = await auth_oauth(jwtdata)
+		if not auth_data.user or not auth_data.role:
+			logger.error(f"user or role not found")
+			raise HTTPException(status_code=401, detail="user or role not found")
+		return auth_data
+	except HTTPException as e:
+		raise
+	except ExpiredSignatureError as e:
+		raise HTTPException(status_code=401, detail="outdated jwt")
+	except Exception as e:
+		logger.warning(f"token_dep error {e}")
+		raise HTTPException(status_code=401, detail="invalid jwt")
+	
+	
+def user_preveleg_oauth_dep(privilege: str | settings.BASE_ROLE)->UserDepData:
+	async def _user_role_dep(request: Request):
+		try:
+			headers_data = { 
+				"Authorization": request.headers.get("authorization"),
+				"X_status_auth": request.headers.get("x-status-auth"),
+				"X_forwarded_for": request.headers.get("x-forwarded-for"),
+				"X_user_id": request.headers.get("x-user-id"),
+				"X_user_role": request.headers.get("x-user-role"),
+				"Host": request.headers.get("host"),
+				"X_user_privilege": request.headers.get("x-user-privilege"),
+			}
+			jwtdata = getJWT(headers_data["Authorization"])
+			if not jwtdata:
+				raise HTTPException(status_code=401, detail="invalid jwt")
+			auth_data = await auth_oauth(jwtdata)
+			if not auth_data.user or not auth_data.role:
+				logger.error(f"user or role not found")
+				raise HTTPException(status_code=403, detail="user or role not found")
+			if(privilege == settings.BASE_ROLE.ADMIN and auth_data.role.role_name != settings.BASE_ROLE.ADMIN):
+				return HTTPException(status_code=403, detail="not enough rights for the operation.")
+			elif(not check_privilege(auth_data.role, privilege)):
+				return HTTPException(status_code=403, detail="not enough rights for the operation.")
+			return auth_data
+		except HTTPException as e:
+			raise
+		except ExpiredSignatureError as e:
+			raise HTTPException(status_code=401, detail="outdated jwt")
+		except Exception as e:
+			logger.warning(f"token_dep error {e}")
+			raise HTTPException(status_code=401, detail="invalid jwt")
+	return _user_role_dep

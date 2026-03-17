@@ -91,15 +91,19 @@ export interface MessageData {
     subject: string
 }
 
-export type MeData = {
-    user_id: string,
-    user_name: string,
-    role: Role
+
+export interface Client {
+  id: string;
+  name: string;
+  redirect_uri: string;
 }
 
-export type AuthData = {
-  userId: string;
-  userName: string
-  role: string;
-  privileges: string[];
+export interface ClientCreate {
+  name: string;
+  redirect_uri: string;
+}
+
+export interface ClientUpdate {
+  name?: string | null;
+  redirect_uri?: string | null;
 }

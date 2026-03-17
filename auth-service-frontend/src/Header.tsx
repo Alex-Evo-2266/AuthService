@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { Layout, Menu } from "antd";
-import { useAuth } from "./context/AuthContext";
 import { AUTH_SERVICE_PREFIX } from "./const";
+import { useAuth } from "alex-evo-sh-auth";
 const { Header } = Layout;
 
 export function HeaderComponent() {
@@ -31,6 +31,10 @@ export function HeaderComponent() {
 
                 <Menu.Item key={`${AUTH_SERVICE_PREFIX}/email-configs`}>
                   <Link to={`${AUTH_SERVICE_PREFIX}/email-configs`}>Конфиг email</Link>
+                </Menu.Item>
+
+                <Menu.Item key={`${AUTH_SERVICE_PREFIX}/clients`}>
+                  <Link to={`${AUTH_SERVICE_PREFIX}/clients`}>Клиенты</Link>
                 </Menu.Item>
 
                 <Menu.Item key="logout" onClick={logout}>

@@ -36,13 +36,13 @@ services:
       - "traefik.http.routers.email_http.rule=PathPrefix(`/api-email`)"
       - "traefik.http.routers.email_http.entrypoints=web"
       - "traefik.http.routers.email_http.service=email"
-      - "traefik.http.routers.email_http.middlewares=auth_sso@docker"
+      - "traefik.http.routers.email_http.middlewares=auth_oauth@docker"
       # https (с TLS)
       - "traefik.http.routers.email_https.rule=PathPrefix(`/api-email`)"
       - "traefik.http.routers.email_https.entrypoints=websecure"
       - "traefik.http.routers.email_https.tls=true"
       - "traefik.http.routers.email_https.service=email"
-      - "traefik.http.routers.email_https.middlewares=auth_sso@docker"
+      - "traefik.http.routers.email_https.middlewares=auth_oauth@docker"
       # общий сервис
       - "traefik.http.services.email.loadbalancer.server.port=8005"
     volumes:
@@ -68,6 +68,8 @@ services:
       RABITMQ_HOST: ${RABITMQ_HOST}
       RABITMQ_PORT: ${RABITMQ_PORT}
       AUTH_PIVILEGES: ${AUTH_PIVILEGES}
+      AUTH_ID_SERVICE: ${AUTH_ID_SERVICE}
+      ID_SERVICES: ${ID_SERVICES}
     ports:
       - 8004:8004
     labels:
@@ -92,6 +94,11 @@ services:
       - "traefik.http.middlewares.auth_sso.forwardauth.address=http://auth_service:8004/api-auth/sso/check"
       - "traefik.http.middlewares.auth_sso.forwardauth.trustforwardheader=true"
       - "traefik.http.middlewares.auth_sso.forwardauth.authResponseHeaders=x-user-id,x-user-role,x-access-token,x-user-privilege"
+
+      # middleware для sso проверки
+      - "traefik.http.middlewares.auth_oauth.forwardauth.address=http://auth_service:8004/api-auth/oauth/check"
+      - "traefik.http.middlewares.auth_oauth.forwardauth.trustforwardheader=true"
+      - "traefik.http.middlewares.auth_oauth.forwardauth.authResponseHeaders=x-user-id,x-user-role,x-access-token,x-user-privilege"
 
       # middleware для обычной проверки
       - "traefik.http.middlewares.auth.forwardauth.address=http://auth_service:8004/api-auth/api/check"
@@ -120,6 +127,12 @@ services:
     build:
       context: ${AUTH_SERVICE_DIR}/auth-service-frontend
       dockerfile: Dockerfile
+      args:
+        VITE_AUTH_ID_SERVICE: ${AUTH_ID_SERVICE}
+        VITE_API_AUTH: ${API_AUTH}
+    environment:
+      VITE_AUTH_ID_SERVICE: ${AUTH_ID_SERVICE}
+      VITE_API_AUTH: ${API_AUTH}
     restart: always
     volumes:
       - client_auth_voluem:/home/frontend/web
