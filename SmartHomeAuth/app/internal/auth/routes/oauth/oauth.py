@@ -15,6 +15,7 @@ from app.internal.role.logic.get_privilege import get_privilege
 from app.internal.role.serialization.map_role import map_role
 from app.internal.auth.routes.utils import generate_temp_token, handle_existing_session, handle_temp_token, parse_forwarded_uri
 from app.internal.auth.schemas.auth import MeSchems
+from app.internal.exceptions.base import InvalidInputException
 from app.internal.auth.schemas.auth import TempTokenData
 import base64, hashlib, logging
 
@@ -109,6 +110,9 @@ async def refrash(data:RefreshOAuth, response:Response = Response("ok", 200), sm
 		response.set_cookie(key="smart_home_refrash", value=refrash, httponly=True)
 
 		return RefreshResponse(access=access, user_id=user.id)
+	except InvalidInputException as e:
+		logger.error(str(e))
+		return JSONResponse(status_code=401, content={"message": str(e)})
 	except Exception as e:
 		logger.error(str(e))
 		return JSONResponse(status_code=400, content={"message": str(e)})
