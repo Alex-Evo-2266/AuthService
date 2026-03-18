@@ -38,7 +38,9 @@ def verify_pkce(code_verifier, code_challenge)->bool:
 @router.get("/authorize")
 async def authorize(client_id: str, redirect_uri: str, code_challenge: str, code_challenge_method: str, state: str, smart_home_autorize: Optional[str] = Cookie(None)):
 
-	authtorize = await get_session_by_token(smart_home_autorize)
+	authtorize = None
+	if(smart_home_autorize):
+		authtorize = await get_session_by_token(smart_home_autorize)
 	if not authtorize:
 		return RedirectResponse(
 			f"{AUTH_FRONTEND}/authorize?client_id={client_id}&redirect_uri={redirect_uri}&code_challenge={code_challenge}&code_challenge_method={code_challenge_method}&state={state}"

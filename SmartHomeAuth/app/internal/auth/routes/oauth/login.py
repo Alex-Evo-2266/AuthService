@@ -27,7 +27,7 @@ async def login(data: LoginOAuth, request: Request, response:Response = Response
 
     ip = request.headers.get("x-forwarded-for")
     host=request.headers.get("host")
-    session = await create_session(user, host, ip)
+    session = await create_session(user, host, ip, data.client_id)
     response.set_cookie(
         key="smart_home_autorize", 
         value=session.access, 

@@ -12,7 +12,7 @@ from app.internal.auth.schemas.enums import TypeSession
 
 
 
-async def create_session(user: User, host: str | None, ip: str | None)->Session:
+async def create_session(user: User, host: str | None, ip: str | None, service: str | None)->Session:
 	uuid = uuid4().hex
 	(token, exp) = create_session_token(user.id, uuid)
 	if not user:
@@ -22,6 +22,7 @@ async def create_session(user: User, host: str | None, ip: str | None)->Session:
 		user=user, 
 		expires_at=exp,
 		access=token,
+		service=service,
 		host=host,
 		type=TypeSession.OAUTH
 		)
