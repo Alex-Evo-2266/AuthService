@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Response, Depends, Cookie
+from fastapi import APIRouter, Response, Depends, Cookie, Request, HTTPException
 from fastapi.responses import RedirectResponse, JSONResponse
 from app.internal.auth.logic.oauth.jwt import create_access_token
 from app.internal.auth.logic.oauth.refresh import create_refresh_token_data, refresh_token
@@ -13,7 +13,9 @@ from typing import Optional
 from app.internal.role.logic.get_role import get_role_by_id
 from app.internal.role.logic.get_privilege import get_privilege
 from app.internal.role.serialization.map_role import map_role
+from app.internal.auth.routes.utils import generate_temp_token, handle_existing_session, handle_temp_token, parse_forwarded_uri
 from app.internal.auth.schemas.auth import MeSchems
+from app.internal.auth.schemas.auth import TempTokenData
 import base64, hashlib, logging
 
 logger = logging.getLogger(__name__)
@@ -110,3 +112,27 @@ async def refrash(data:RefreshOAuth, response:Response = Response("ok", 200), sm
 	except Exception as e:
 		logger.error(str(e))
 		return JSONResponse(status_code=400, content={"message": str(e)})
+
+
+@router.get("/module-service/temp-token", response_model=TempTokenData)
+async def get_temp_token(service: str, userData:UserDepData = Depends(user_oauth_dep)):
+    """Эндпоинт для генерации временного токена."""
+    return await generate_temp_token(userData.user, userData.role, service)
+
+
+@router.get("/module-service/check")
+async def check_user(request: Request):
+    """
+    Проверка пользователя при обращении к модульному сервису.
+    """
+    try:
+        forwarded_uri, dest, scheme, host, service, inner_path, temp_token = parse_forwarded_uri(request)
+        if temp_token:
+            return await handle_temp_token(temp_token, forwarded_uri, scheme, host, inner_path, service, dest)
+        return await handle_existing_session(request, inner_path, dest)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("Ошибка при проверке пользователя")
+        raise HTTPException(400, f"Unexpected error: {str(e)}")
