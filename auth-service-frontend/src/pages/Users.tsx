@@ -117,7 +117,7 @@ export default function Users() {
         loading={loading}
         pagination={false}
         components={{
-          body: (raw) => (
+          body: () => (
             <VirtualList
               data={users}
               height={500}
