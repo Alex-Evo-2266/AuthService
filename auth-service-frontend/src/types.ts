@@ -34,6 +34,16 @@ new_password: string;
 
 export interface UsersDataSchema {
 users: UserSchema[]
+limit: number
+next_cursor: string | null
+total: number
+}
+
+export interface UsersDataSchemaPage{
+    users: UserSchema[]
+    limit: number
+    offset: number
+    total: number
 }
 
 export interface CreateRole {

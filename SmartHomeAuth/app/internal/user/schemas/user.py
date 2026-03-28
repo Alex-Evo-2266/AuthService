@@ -28,3 +28,12 @@ class UserEditPasswordSchema(BaseModel):
 
 class UsersDataSchema(BaseModel):
     users: List[UserSchema]
+    limit: int
+    next_cursor: str | None
+    total: int
+
+class UsersDataPageSchema(BaseModel):
+    users: List[UserSchema]
+    offset: int
+    limit: int
+    total: int

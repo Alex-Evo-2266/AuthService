@@ -2,21 +2,23 @@ import logging
 
 from app.configuration.settings import ROUTE_PREFIX
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from fastapi.responses import JSONResponse
 from app.internal.auth.schemas.depends import SessionDepData
 from app.internal.auth.depends.auth import user_oauth_dep, user_preveleg_oauth_dep
 
 from app.internal.role.logic.get_role import get_role
 
-from app.internal.user.schemas.user import UserForm, UserSchema, UserEditSchema, UserEditLevelSchema, UserEditPasswordSchema, UsersDataSchema
+from app.internal.user.schemas.user import UserForm, UserSchema, UserEditSchema, UsersDataPageSchema, UserEditLevelSchema, UserEditPasswordSchema, UsersDataSchema
 from app.internal.user.logic.create_user import add_user
-from app.internal.user.logic.get_user import get_user, get_all_users
+from app.internal.user.logic.get_user import get_user, get_all_users, get_all_users_page
 from app.internal.user.logic.edit_user import edit_user, edit_user_password
 from app.internal.user.logic.edit_role_user import edit_role
 from app.internal.user.logic.delete_user import delete_user
 
 from app.configuration.settings import BASE_ROLE
+
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -42,16 +44,39 @@ async def get(session:SessionDepData = Depends(user_oauth_dep)):
 		return JSONResponse(status_code=400, content=str(e))
 
 @router.get("/all", response_model=UsersDataSchema)
-async def get_all(session:SessionDepData = Depends(user_oauth_dep)):
+async def get_all(
+	session:SessionDepData = Depends(user_oauth_dep),
+	search: Optional[str] = Query(None), 
+	limit: int = Query(20, ge=1, le=100),
+	cursor: Optional[str] = Query(None)
+	):
 	try:
-		users = await get_all_users()
+		users, next_cursor, total = await get_all_users(search, limit, cursor)
 		users_data = []
 		for user in users:
 			await user.role.load()
 			users_data.append(UserSchema(id=user.id, name=user.name, email=user.email, role=user.role.role_name))
-		return UsersDataSchema(users=users_data)
+		return UsersDataSchema(users=users_data, next_cursor=next_cursor, limit=limit, total=total)
 	except Exception as e:
 		return JSONResponse(status_code=400, content=str(e))
+	
+@router.get("/all/page", response_model=UsersDataPageSchema)
+async def get_all(
+	session:SessionDepData = Depends(user_oauth_dep),
+	search: Optional[str] = Query(None), 
+	limit: int = Query(20, ge=1, le=100),
+	page: int = Query(1)
+	):
+	try:
+		users, offset, total = await get_all_users_page(page, limit, search)
+		users_data = []
+		for user in users:
+			await user.role.load()
+			users_data.append(UserSchema(id=user.id, name=user.name, email=user.email, role=user.role.role_name))
+		return UsersDataPageSchema(users=users_data, offset=offset, limit=limit, total=total)
+	except Exception as e:
+		return JSONResponse(status_code=400, content=str(e))
+
 
 @router.get("/{id}", response_model=UserSchema)
 async def get_by_id(id:str, session:SessionDepData = Depends(user_oauth_dep)):

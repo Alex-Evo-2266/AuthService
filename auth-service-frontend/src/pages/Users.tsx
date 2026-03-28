@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Table, Button, Popconfirm, message, Space } from "antd";
+import { Table, Button, Popconfirm, message, Space, Pagination } from "antd";
 import { useUserAPI } from "../api/users";
 import type { UserSchema } from "../types";
 import { ADD_USER, AUTH_SERVICE_PREFIX, DELETE_USER, EDIT_ROLE_USER, EDIT_USER } from "../const";
@@ -8,10 +8,16 @@ import { NavLink } from "react-router-dom";
 import UserModal from "../components/UserEditModal";
 import PasswordEditModal from "../components/PasswordEditDialog";
 import { useAuth, usePrivilege } from "alex-evo-sh-auth";
+import VirtualList from 'rc-virtual-list';
+
+const LIMIT = 10;
 
 export default function Users() {
   const [users, setUsers] = useState<UserSchema[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [total, setTotal] = useState(0);
+
   const {user} = useAuth()
   const valid_add = usePrivilege(ADD_USER)
   const valid_edit = usePrivilege(EDIT_USER)
@@ -20,14 +26,15 @@ export default function Users() {
   const [editRoleUserModal, setEditRoleUserModal] = useState<null | UserSchema>(null);
   const [editUserModal, setEditUserModal] = useState<null | UserSchema>(null);
   const [editPasswordModel, setEditPasswordModel] = useState<boolean>(false);
-  const {getAllUsers, deleteUser} = useUserAPI()
-  
+  const {getAllUsersPage, deleteUser} = useUserAPI(); // новый endpoint /all_by_page
 
-  const fetchUsers = async () => {
+  const fetchUsers = async (page: number = 1) => {
     setLoading(true);
     try {
-      const { data } = await getAllUsers();
+      const { data } = await getAllUsersPage({ page, limit: LIMIT });
       setUsers(data.users);
+      setTotal(data.total);
+      setCurrentPage(page);
     } catch (err) {
       message.error("Ошибка загрузки пользователей");
     } finally {
@@ -36,31 +43,31 @@ export default function Users() {
   };
 
   useEffect(() => {
-    fetchUsers();
+    fetchUsers(1);
   }, []);
 
   const handleDelete = async (id:string) => {
     try {
       await deleteUser(id);
       message.success("Пользователь удалён");
-      fetchUsers();
+      fetchUsers(currentPage);
     } catch {
       message.error("Не удалось удалить");
     }
   };
 
-   const handleModal = () => {
-      setEditRoleUserModal(null);
-      setEditUserModal(null)
-      setEditPasswordModel(false)
-      fetchUsers();
-    }
+  const handleModal = () => {
+    setEditRoleUserModal(null);
+    setEditUserModal(null);
+    setEditPasswordModel(false);
+    fetchUsers(currentPage);
+  }
 
-    const handleModalCancel = () => {
-      setEditRoleUserModal(null);
-      setEditUserModal(null)
-      setEditPasswordModel(false)
-    };
+  const handleModalCancel = () => {
+    setEditRoleUserModal(null);
+    setEditUserModal(null);
+    setEditPasswordModel(false);
+  };
 
   const columns = [
     { title: "ID", dataIndex: "id" },
@@ -71,20 +78,16 @@ export default function Users() {
       title: "Действия",
       render: (_:unknown, record: UserSchema) => (
         <Space>
-          {
-            (valid_edit || (user && user.userId === record.id)) &&
+          {(valid_edit || (user && user.userId === record.id)) &&
             <Button type="link" onClick={()=>setEditUserModal(record)}>Изменить</Button>
           }
-          {
-            valid_edit_role && user && user.userId !== record.id &&
+          {valid_edit_role && user && user.userId !== record.id &&
             <Button type="link" onClick={()=>setEditRoleUserModal(record)}>Изменить роль</Button>
           }
-          {
-            valid_edit_role && user && user.userId === record.id &&
+          {valid_edit_role && user && user.userId === record.id &&
             <Button type="link" onClick={()=>setEditPasswordModel(true)}>Изменить пароль</Button>
           }
-          {
-            valid_delete && user && user.userId !== record.id &&
+          {valid_delete && user && user.userId !== record.id &&
             <Popconfirm
               title="Удалить пользователя?"
               onConfirm={() => handleDelete(record.id)}
@@ -99,33 +102,59 @@ export default function Users() {
 
   return (
     <div>
-        {
-          valid_add &&
-          <NavLink to={`${AUTH_SERVICE_PREFIX}/users/add`}>
-            <Button type="primary" style={{ marginBottom: 16 }}>
-              Добавить пользователя
-            </Button>
-          </NavLink>
-        }
-        <Table
-          loading={loading}
-          columns={columns}
-          dataSource={users}
-          rowKey="id"
+      {valid_add &&
+        <NavLink to={`${AUTH_SERVICE_PREFIX}/users/add`}>
+          <Button type="primary" style={{ marginBottom: 16 }}>
+            Добавить пользователя
+          </Button>
+        </NavLink>
+      }
+
+      <Table
+        columns={columns}
+        dataSource={users}
+        rowKey="id"
+        loading={loading}
+        pagination={false}
+        components={{
+          body: (raw) => (
+            <VirtualList
+              data={users}
+              height={500}
+              itemKey="id"
+              itemHeight={50}
+            >
+              {(item) => (
+                <tr key={item.id}>
+                  {columns.map(col => (
+                    <td key={col.dataIndex}>{item[col.dataIndex as keyof UserSchema]}</td>
+                  ))}
+                </tr>
+              )}
+            </VirtualList>
+          ),
+        }}
+      />
+
+      <div style={{ display:"flex", justifyContent:"center", marginTop:16 }}>
+        <Pagination
+          current={currentPage}
+          pageSize={LIMIT}
+          total={total}
+          onChange={(page) => fetchUsers(page)}
+          showSizeChanger={false}
         />
-        {
-          editRoleUserModal &&
-          <RoleModal open={editRoleUserModal !== null} user={editRoleUserModal} onClose={handleModalCancel} onSuccess={handleModal}/>
-        }
-        {
-          editUserModal &&
-          <UserModal open={editUserModal !== null} user={editUserModal} onClose={handleModalCancel} onSuccess={handleModal}/>
-        }
-        {
-          editPasswordModel &&
-          <PasswordEditModal open={editPasswordModel} onClose={handleModalCancel} onSuccess={handleModal}/>
-        }
+      </div>
+
+      {editRoleUserModal &&
+        <RoleModal open={editRoleUserModal !== null} user={editRoleUserModal} onClose={handleModalCancel} onSuccess={handleModal}/>
+      }
+      {editUserModal &&
+        <UserModal open={editUserModal !== null} user={editUserModal} onClose={handleModalCancel} onSuccess={handleModal}/>
+      }
+      {editPasswordModel &&
+        <PasswordEditModal open={editPasswordModel} onClose={handleModalCancel} onSuccess={handleModal}/>
+      }
     </div>
-    
   );
 }

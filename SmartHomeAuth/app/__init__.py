@@ -12,7 +12,7 @@ def create_app(_=None) -> FastAPI:
 
     app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5174", "http://localhost:1337", "https://localhost:1338"],  # фронт
+    allow_origins=["http://localhost:5174", "http://localhost:5173" "http://localhost:1337", "https://localhost:1338"],  # фронт
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
