@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 async def module_service_auth(temp_token: str | None = None, path:str = "/", service:str = "", host="localhost", dest:str = ""):
 	payload = await temp_token_check(temp_token)
-	print(payload, {"service": service})
+	print(payload, {"service": service, "test": payload["service"] != service})
 	if not payload:
 		raise HTTPException(403, "Role not allowed")
 		
