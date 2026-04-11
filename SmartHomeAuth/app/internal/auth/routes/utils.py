@@ -36,6 +36,7 @@ async def module_service_auth(temp_token: str | None = None, path:str = "/", ser
 	user = await get_user(payload["user_id"])
 	user_role = await get_role_by_id(payload["user_role"])
 
+	print(user_role, config, user)
 	if user_role.role_name not in config.roles or not user:
 		raise HTTPException(403, "permission denied")
 	
